@@ -116,10 +116,9 @@ def patchbay(host: str, words: Sequence[str], code: str, message: str, status: i
 
 
 def account_menu(host: str) -> str:
-    """A site's home page, whose account menu has Pair New Agent for a person signed in there.
-    Each site keeps the pairing box on its own page, so the menu is the one way in they share.
-    A pairing works on every Regent site."""
-    return f"https://{host}/"
+    """The site's agents page (on regents.sh) or home page where a signed-in person finds Pair
+    New Agent. A pairing works across every product on regents.sh."""
+    return f"https://{host}/account/agents" if host == "regents.sh" else f"https://{host}/"
 
 
 def pair_first(namespace: str, host: str) -> list[Step]:

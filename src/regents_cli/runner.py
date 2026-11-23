@@ -183,7 +183,14 @@ def build_command(platform: Platform, command: Command) -> click.Command:
     params += [flag_option(spec) for spec in command.flags]
     params += [
         click.Option(["--json", "as_json"], is_flag=True, help="Print the answer as JSON."),
-        click.Option(["--base-url"], help=f"The site's address; also {platform.env_var}."),
+        click.Option(
+            ["--base-url"],
+            help=(
+                f"The site's address; also {platform.env_var} or {platform.fallback_env_var}."
+                if platform.fallback_env_var
+                else f"The site's address; also {platform.env_var}."
+            ),
+        ),
         click.Option(
             ["--timeout-ms"],
             type=click.IntRange(1, 300_000),
@@ -256,7 +263,12 @@ def build_command(platform: Platform, command: Command) -> click.Command:
         missing = [name for name in command.required_one_of if given[name] is None]
         if command.required_one_of and len(missing) == len(command.required_one_of):
             raise UsageError("Give at least one of " + ", ".join(f"--{n}" for n in missing) + ".")
-        base = base_address(base_url, platform.env_var, platform.base_url)
+        base = base_address(
+            base_url,
+            platform.env_var,
+            platform.base_url,
+            fallback_env_var=platform.fallback_env_var,
+        )
         request = request_for(command, given, base)
         shared = [*(["--base-url", base_url] if base_url else []), *(["--json"] if as_json else [])]
         if command.stream:

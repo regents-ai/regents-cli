@@ -45,7 +45,7 @@ VERSION_TIMEOUT_SECONDS: Final = 10.0
 DAEMON_TIMEOUT_SECONDS: Final = 20.0
 SUPPORTED_PYTHON: Final[tuple[tuple[int, int], tuple[int, int]]] = ((3, 12), (3, 15))
 TECHTREE_PLUGIN_NAME: Final = "techtree"
-START_PAGE_URL: Final = "https://techtree.sh/start"
+START_PAGE_URL: Final = "https://regents.sh/start"
 DEVELOPMENT_PLACEHOLDER_MARKERS: Final[tuple[str, ...]] = (
     "development-placeholder",
     "not-executed",

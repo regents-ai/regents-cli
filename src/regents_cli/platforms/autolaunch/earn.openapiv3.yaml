@@ -1,16 +1,15 @@
-# Earn, added to api-contract.openapiv3.yaml only while the site offers it
-# (AUTOLAUNCH_EARN=true; AutolaunchWeb.PublicDocuments.openapi/0). Off, /openapi.json
-# is api-contract.openapiv3.yaml exactly. Every path and component here is new; none replaces one.
 paths:
-  /api/v1/earn/products:
+  /api/v1/autolaunch/earn/products:
     get:
       operationId: autolaunch_earn_products
       summary: List the Earn products
-      description: Every place this site offers to lend USDC on Base, each read from its market at a
-        recent block and shared for up to ten seconds, with its rate now (a yearly rate before
-        compounding, which changes), what is supplied, what can be withdrawn now, its supply cap and its
-        capacity under it, its status, the block the figures were read at, and its risks. Amounts are in the asset's smallest units (USDC has 6 decimals).
-        Needs no account; the page tool autolaunch_earn_products calls it.
+      description: Every place this site offers to lend USDC on Base, each read from
+        its market at a recent block and shared for up to ten seconds, with its rate
+        now (a yearly rate before compounding, which changes), what is supplied, what
+        can be withdrawn now, its supply cap and its capacity under it, its status,
+        the block the figures were read at, and its risks. Amounts are in the asset's
+        smallest units (USDC has 6 decimals). Needs no account; the page tool autolaunch_earn_products
+        calls it.
       security: []
       responses:
         '200':
@@ -26,7 +25,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '503':
-          description: Earn or the chain could not be read just now (earn_unavailable, chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
+          description: Earn or the chain could not be read just now (earn_unavailable,
+            chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
           content:
             application/json:
               schema:
@@ -35,12 +35,13 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         default:
           $ref: '#/components/responses/OtherError'
-  /api/v1/me/earn:
+  /api/v1/autolaunch/me/earn:
     get:
       operationId: getMyEarn
       summary: Read your Earn balances
-      description: The signed-in person's balance in every Earn product, for the wallet they signed in
-        with, at the latest block. Reads the browser session; not agent authority.
+      description: The signed-in person's balance in every Earn product, for the wallet
+        they signed in with, at the latest block. Reads the browser session; not agent
+        authority.
       security:
       - SiteSession: []
       responses:
@@ -63,17 +64,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '503':
-          description: Earn or the chain could not be read just now (earn_unavailable, chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
+          description: Earn or the chain could not be read just now (earn_unavailable,
+            chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EarnError'
-  /api/agent/v1/earn/positions:
+  /api/agent/v1/autolaunch/earn/positions:
     get:
       operationId: autolaunch_earn_positions
       summary: Read your person's Earn balances
-      description: The paired person's balance in every Earn product, for the wallet they signed in with,
-        at the latest block. Changes nothing.
+      description: The paired person's balance in every Earn product, for the wallet
+        they signed in with, at the latest block. Changes nothing.
       security:
       - SiwaProof: []
       responses:
@@ -98,18 +100,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '503':
-          description: Earn or the chain could not be read just now (earn_unavailable, chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
+          description: Earn or the chain could not be read just now (earn_unavailable,
+            chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EarnError'
-  /api/agent/v1/earn/quote:
+  /api/agent/v1/autolaunch/earn/quote:
     post:
       operationId: autolaunch_earn_quote
       summary: Preview an Earn deposit or withdrawal
-      description: What a deposit or withdrawal comes to for one of the person's own wallets (`signer`,
-        or the wallet they signed in with) at the latest block, without its wallet calls. It reserves
-        nothing. A step the chain's state makes certain to fail answers 200 with `blocked`. Changes nothing.
+      description: What a deposit or withdrawal comes to for one of the person's own
+        wallets (`signer`, or the wallet they signed in with) at the latest block,
+        without its wallet calls. It reserves nothing. A step the chain's state makes
+        certain to fail answers 200 with `blocked`. Changes nothing.
       security:
       - SiwaProof: []
       requestBody:
@@ -128,8 +132,8 @@ paths:
         '401':
           description: Fresh request proof required
         '403':
-          description: The agent is paired with nobody (agent_not_paired), or the signer is not one of
-            the person's own wallets (wrong_signer)
+          description: The agent is paired with nobody (agent_not_paired), or the
+            signer is not one of the person's own wallets (wrong_signer)
           content:
             application/json:
               schema:
@@ -147,27 +151,29 @@ paths:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '422':
-          description: An unknown field, kind or type, or an amount that is not a whole number above zero
-            (invalid_request, invalid_amount)
+          description: An unknown field, kind or type, or an amount that is not a
+            whole number above zero (invalid_request, invalid_amount)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '503':
-          description: Earn or the chain could not be read just now (earn_unavailable, chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
+          description: Earn or the chain could not be read just now (earn_unavailable,
+            chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EarnError'
-  /api/agent/v1/earn/steps:
+  /api/agent/v1/autolaunch/earn/steps:
     post:
       operationId: autolaunch_earn_prepare
       summary: Prepare an Earn step
-      description: The wallet steps for a deposit (an exact USDC approval, then supply) or a withdrawal,
-        built from the chain at the latest block, for one of the person's own wallets (`signer`, or the
-        wallet they signed in with). The site only prepares; the wallet's own key signs and sends each
-        step, and each step's data ends with the site's Builder Code. A step the chain's state makes
-        certain to fail answers 200 with `blocked`, and its steps. Changes nothing.
+      description: The wallet steps for a deposit (an exact USDC approval, then supply)
+        or a withdrawal, built from the chain at the latest block, for one of the
+        person's own wallets (`signer`, or the wallet they signed in with). The site
+        only prepares; the wallet's own key signs and sends each step, and each step's
+        data ends with the site's Builder Code. A step the chain's state makes certain
+        to fail answers 200 with `blocked`, and its steps. Changes nothing.
       security:
       - SiwaProof: []
       requestBody:
@@ -178,8 +184,8 @@ paths:
               $ref: '#/components/schemas/EarnRequest'
       responses:
         '200':
-          description: The steps, whether the allowance already covers a deposit, and any reason they are
-            certain to fail
+          description: The steps, whether the allowance already covers a deposit,
+            and any reason they are certain to fail
           content:
             application/json:
               schema:
@@ -187,8 +193,8 @@ paths:
         '401':
           description: Fresh request proof required
         '403':
-          description: The agent is paired with nobody (agent_not_paired), or the signer is not one of
-            the person's own wallets (wrong_signer)
+          description: The agent is paired with nobody (agent_not_paired), or the
+            signer is not one of the person's own wallets (wrong_signer)
           content:
             application/json:
               schema:
@@ -206,14 +212,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '422':
-          description: An unknown field, kind or type, or an amount that is not a whole number above zero
-            (invalid_request, invalid_amount)
+          description: An unknown field, kind or type, or an amount that is not a
+            whole number above zero (invalid_request, invalid_amount)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EarnError'
         '503':
-          description: Earn or the chain could not be read just now, or the site is not open yet (earn_unavailable, chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain, prelaunch_read_only)
+          description: Earn or the chain could not be read just now, or the site is
+            not open yet (earn_unavailable, chain_unavailable, invalid_chain_response,
+            invalid_block_header, wrong_chain, prelaunch_read_only)
 components:
   schemas:
     EarnBlock:
@@ -310,8 +318,8 @@ components:
           capacity:
             type: integer
             nullable: true
-            description: The most one deposit can be before the supply cap, 0 when the market is full;
-              null when it has none.
+            description: The most one deposit can be before the supply cap, 0 when
+              the market is full; null when it has none.
           block:
             $ref: '#/components/schemas/EarnBlock'
           risks:
@@ -420,7 +428,8 @@ components:
           type: string
         amount:
           type: integer
-          description: What the step moves at this block; for everything, the balance now.
+          description: What the step moves at this block; for everything, the balance
+            now.
         everything:
           type: boolean
         approved:

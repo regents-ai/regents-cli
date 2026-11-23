@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/regents-ai/regents-cli/main/src/regents_cli/schemas/commands.v1.json",
   "format": "regents.commands.v1",
   "platform": "techtree",
-  "base_url": "https://techtree.sh",
+  "base_url": "https://regents.sh",
   "notes": [
     "Owner controls stay owner-only; account reads activate no Points and spend no funds."
   ],
@@ -99,7 +99,7 @@
       "command": "model-climb reports",
       "operation_id": "model_climb_reports",
       "method": "GET",
-      "path": "/api/model-climb/v1/reports",
+      "path": "/api/v1/techtree/model-climb/reports",
       "description": "List the Model Climb reports the current paired owner has kept, newest first; private to that owner.",
       "authority": "paired_agent",
       "effect": "read"
@@ -108,7 +108,7 @@
       "command": "model-climb report <digest>",
       "operation_id": "model_climb_report",
       "method": "GET",
-      "path": "/api/model-climb/v1/reports/{digest}",
+      "path": "/api/v1/techtree/model-climb/reports/{digest}",
       "description": "Read one of the current paired owner's Model Climb reports with its whole signed proof.",
       "authority": "paired_agent",
       "effect": "read",
@@ -128,7 +128,7 @@
       "operation_id": "listPublications",
       "webmcp": "techtree_results",
       "method": "GET",
-      "path": "/api/v1/publications",
+      "path": "/api/v1/techtree/publications",
       "authority": "public",
       "effect": "read",
       "flags": [
@@ -182,7 +182,7 @@
       "operation_id": "getPublication",
       "webmcp": "techtree_result",
       "method": "GET",
-      "path": "/api/v1/publications/{bundle_digest}",
+      "path": "/api/v1/techtree/publications/{bundle_digest}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -194,6 +194,35 @@
           "description": "The Result's digest, `sha256:` and 64 lowercase hex characters; `regents techtree results list` names them."
         }
       ]
+    },
+    {
+      "command": "account projects",
+      "description": "List delivered Techtree projects belonging to the paired owner, newest first.",
+      "operation_id": "listTechtreeProjects",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/projects",
+      "authority": "paired_agent",
+      "effect": "read",
+      "webmcp": "account_projects"
+    },
+    {
+      "command": "account project <id>",
+      "description": "Read one delivered Techtree project with its report, summary, cases, and package metadata.",
+      "operation_id": "getTechtreeProject",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/projects/{id}",
+      "authority": "paired_agent",
+      "effect": "read",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "in": "path",
+          "field": "id",
+          "description": "The project UUID from account projects."
+        }
+      ],
+      "webmcp": "account_project"
     }
   ]
 }

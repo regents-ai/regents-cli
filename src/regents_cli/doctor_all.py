@@ -65,7 +65,7 @@ ORDER: tuple[Kind, ...] = ("address", "sign_in", "pairing", "permission", "netwo
 
 
 def doctor_all_command(platforms: list[Platform]) -> click.Command:
-    sites = {platform.site: platform for platform in platforms}
+    choices = sorted({p.site for p in platforms} | {p.name for p in platforms})
 
     @click.command(
         "doctor",
@@ -78,8 +78,12 @@ def doctor_all_command(platforms: list[Platform]) -> click.Command:
         "--site",
         "named",
         multiple=True,
-        type=click.Choice(sorted(sites)),
-        help="Check only this site; give it again for another.",
+        type=click.Choice(choices),
+        help="Check only this site or product namespace; give it again for another.",
+    )
+    @click.option(
+        "--base-url",
+        help="Override the site address (for example http://localhost:4010 for local dev).",
     )
     @click.option("--json", "as_json", is_flag=True, help="Print the answer as JSON.")
     @click.option(
@@ -89,15 +93,43 @@ def doctor_all_command(platforms: list[Platform]) -> click.Command:
         show_default=True,
         help="How long to wait for each answer.",
     )
-    def doctor(named: tuple[str, ...], as_json: bool, timeout_ms: int) -> None:
+    def doctor(
+        named: tuple[str, ...], base_url: str | None, as_json: bool, timeout_ms: int
+    ) -> None:
         key = check(AGENT_KEY, agent_key)
         machine = [key, check("regents mcp", mcp_ready), check("regents browser", browser_ready)]
         may_sign = key["ok"] and key["code"] != LOCKED
-        checked = [
-            (platform, site_report(platform, timeout_ms, may_sign=may_sign))
-            for platform in platforms
-            if not named or platform.site in named
+        selected = [
+            platform
+            for platform in sorted(
+                platforms, key=lambda p: (0 if p.name == "protocol" else 1, p.name)
+            )
+            if not named or platform.site in named or platform.name in named
         ]
+        seen_origins: set[tuple[str, str]] = set()
+        checked: list[tuple[Platform, dict[str, Any]]] = []
+        for platform in selected:
+            base = base_address(
+                base_url,
+                platform.env_var,
+                platform.base_url,
+                fallback_env_var=platform.fallback_env_var,
+            )
+            origin_key = (platform.site, base)
+            include_shared = origin_key not in seen_origins
+            seen_origins.add(origin_key)
+            checked.append(
+                (
+                    platform,
+                    site_report(
+                        platform,
+                        base,
+                        timeout_ms,
+                        may_sign=may_sign,
+                        include_shared=include_shared,
+                    ),
+                )
+            )
         found: dict[str, Any] = {
             "regents": version("regents-cli"),
             "python": python_version(),
@@ -108,6 +140,7 @@ def doctor_all_command(platforms: list[Platform]) -> click.Command:
         failed = [row for row in rows if not row["ok"]]
         if failed:
             again = ["regents", "doctor", *(word for site in named for word in ("--site", site))]
+            again += ["--base-url", base_url] if base_url else []
             again += ["--json"] if as_json else []
             raise CommandError(
                 "doctor_found_problems",
@@ -120,17 +153,31 @@ def doctor_all_command(platforms: list[Platform]) -> click.Command:
     return doctor
 
 
-def site_report(platform: Platform, timeout_ms: int, *, may_sign: bool) -> dict[str, Any]:
+def site_report(
+    platform: Platform,
+    base: str,
+    timeout_ms: int,
+    *,
+    may_sign: bool,
+    include_shared: bool = True,
+) -> dict[str, Any]:
     """The site's own doctor checks, its pairing once the sign-in server accepts the sign-in,
     and its hosted MCP address."""
-    base = base_address(None, platform.env_var, platform.base_url)
-    checks = site_checks(platform, base, timeout_ms, may_sign=may_sign)
-    probe = probe_of(platform)
-    accepted = any(c["check"] == SIGN_IN and c["code"] == ACCEPTED for c in checks)
-    if probe is not None and accepted:
-        checks.append(check("pairing", partial(paired, platform, probe, timeout_ms)))
-    checks.append(check("hosted MCP", partial(mcp_answers, base, timeout_ms)))
-    return {"site": platform.site, "base_url": base, "checks": checks}
+    checks = site_checks(
+        platform, base, timeout_ms, may_sign=may_sign, include_shared=include_shared
+    )
+    if include_shared:
+        probe = probe_of(platform)
+        accepted = any(c["check"] == SIGN_IN and c["code"] == ACCEPTED for c in checks)
+        if probe is not None and accepted:
+            checks.append(check("pairing", partial(paired, platform, probe, timeout_ms, base)))
+        checks.append(check("hosted MCP", partial(mcp_answers, base, timeout_ms)))
+    return {
+        "site": platform.site,
+        "product": platform.name,
+        "base_url": base,
+        "checks": checks,
+    }
 
 
 def agent_key() -> tuple[str, str]:
@@ -160,9 +207,11 @@ def browser_ready() -> tuple[str, str]:
     return "installed", "regents browser can run, with its Chromium."
 
 
-def paired(platform: Platform, probe: Command, timeout_ms: int) -> tuple[str, str]:
+def paired(
+    platform: Platform, probe: Command, timeout_ms: int, base: str | None = None
+) -> tuple[str, str]:
     """Whether a person's account is paired with this agent, as the site's own probe says."""
-    told = pairing_status(platform, probe, timeout_ms)
+    told = pairing_status(platform, probe, timeout_ms, base_url=base)
     if unpaired(told):
         raise CommandError(
             "agent_not_paired", f"No person's account is paired with this agent on {platform.host}."

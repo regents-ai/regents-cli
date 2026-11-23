@@ -20,7 +20,13 @@ from regents_cli.errors import (
 )
 from regents_cli.http import Request, base_address, data_with, send
 from regents_cli.next_steps import Step, done, human, pair_first, run, run_piped
-from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Command, Platform, pinned_platforms
+from regents_cli.platforms import (
+    DEFAULT_TIMEOUT_MS,
+    Command,
+    Platform,
+    canonical_site,
+    pinned_platforms,
+)
 from regents_cli.runner import read_stdin, unpaired
 
 TIMEOUT = click.Option(
@@ -37,10 +43,21 @@ REGISTRATION_WAIT_SECONDS = 60
 REGISTRATION_POLL_SECONDS = 2
 
 
-def auth_group(sites: list[str]) -> click.Group:
-    site = click.Option(
-        ["--site"], type=click.Choice(sites), required=True, help="The site to sign in to."
+def _site_option(sites: list[str], *, default: str | None) -> click.Option:
+    return click.Option(
+        ["--site"],
+        type=click.Choice(sites),
+        default=default,
+        show_default=default is not None,
+        callback=lambda _ctx, _param, value: canonical_site(value) if value is not None else None,
+        help="The site to sign in to. One sign-in to regents covers Keyfleet, Autolaunch, "
+        "Patchbay, Techtree and Protocol on regents.sh.",
     )
+
+
+def auth_group(sites: list[str]) -> click.Group:
+    default_site = "regents" if "regents" in sites else None
+    site = _site_option(sites, default=default_site)
     group = click.Group(
         "auth",
         help="Sign in to a site with a wallet. One agent key on this machine signs every "
@@ -66,10 +83,10 @@ def auth_group(sites: list[str]) -> click.Group:
                 JSON,
                 TIMEOUT,
             ],
-            help="Sign in to a site. Ask your person first: the first time it makes this "
-            "machine's agent key, and on a Mac it prints a Touch ID page your person opens and "
-            "confirms. After each restart, the first signed command prints that page again; "
-            "regents --open-browser <command> opens it too.",
+            help="Sign in to regents.sh (or another site with --site). Ask your person first: "
+            "the first time it makes this machine's agent key, and on a Mac it prints a Touch ID "
+            "page your person opens and confirms. After each restart, the first signed command "
+            "prints that page again; regents --open-browser <command> opens it too.",
         )
     )
     group.add_command(
@@ -77,11 +94,10 @@ def auth_group(sites: list[str]) -> click.Group:
             "status",
             callback=status,
             params=[
+                _site_option(sites, default=None),
                 click.Option(
-                    ["--site"],
-                    type=click.Choice(sites),
-                    help="Read this site's identity and pairing probe; "
-                    "never checks in or awards Points.",
+                    ["--base-url"],
+                    help="The site's address, such as http://localhost:4010 for a local site.",
                 ),
                 JSON,
                 TIMEOUT,
@@ -216,27 +232,46 @@ def after_sign_in(site: str, as_json: bool) -> list[Step]:
         platform, probe = identity_probe(site)
     except CommandError:
         return [done(f"Signed in to {site}; nothing more to run.")]
-    return [
+    steps = [
         run(
             ["regents", platform.name, *probe.words, *_json(as_json)],
             "Check whether this agent is paired to a person's account.",
         )
     ]
+    if site == "regents":
+        steps.append(
+            run(
+                ["regents", "overview", *_json(as_json)],
+                "Once paired, read the unified account overview across Keyfleet, Autolaunch, "
+                "Patchbay and Techtree.",
+            )
+        )
+    return steps
 
 
 def _json(as_json: bool) -> list[str]:
     return ["--json"] if as_json else []
 
 
-def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
+def status(
+    as_json: bool, timeout_ms: int, site: str | None = None, base_url: str | None = None
+) -> None:
     if site is not None:
         identity_probe(site)
     key = siwa.load_key()
     receipts = siwa.receipts()
     found: dict[str, Any] = {}
-    mine = [site for site, receipt in receipts.items() if this_machine_signs(receipt, key)]
-    addresses = {p.site: base_address(None, p.env_var, p.base_url) for p in pinned_platforms()}
-    confirmable = [site for site in mine if site in addresses]
+    mine = [s for s, receipt in receipts.items() if this_machine_signs(receipt, key)]
+    addresses: dict[str, str] = {}
+    for p in pinned_platforms():
+        if p.site not in addresses or p.name == "protocol":
+            addresses[p.site] = base_address(
+                base_url if (site is None or p.site == site) else None,
+                p.env_var,
+                p.base_url,
+                fallback_env_var=p.fallback_env_var,
+            )
+    confirmable = [s for s in mine if s in addresses]
     if confirmable:
         confirmation_site = (
             site
@@ -265,21 +300,21 @@ def status(as_json: bool, timeout_ms: int, site: str | None = None) -> None:
         except CommandError as error:
             found["pairing_status"] = {"site": selected, **error.as_json()}
         else:
-            told = pairing_status(platform, probe, timeout_ms)
+            told = pairing_status(platform, probe, timeout_ms, base_url=base_url)
             found["pairing_status"] = {"site": selected, **told}
     answer: dict[str, Any] = {
         "agent_key": key.address if key is not None else None,
         # Read after the signed reads above: they renew a run-out sign-in this machine's key made.
         "sign_ins": [
             {
-                "site": site,
+                "site": s,
                 "wallet_address": receipt.address,
                 "signed_in_until": receipt.receipt_expires_at,
                 "fresh": receipt.fresh(),
                 "renews": this_machine_signs(receipt, key),
                 "signs": signs(receipt, key),
             }
-            for site, receipt in siwa.receipts().items()
+            for s, receipt in siwa.receipts().items()
         ],
         **found,
     }
@@ -293,19 +328,19 @@ def after_status(answer: dict[str, Any]) -> list[Step]:
     if not sign_ins and answer.get("agent_key") is None:
         return [
             run(
-                ["regents", "auth", "login", "--site", "<site>"],
-                "Ask your person first. This makes this machine's agent key, then signs in to the "
-                "site you need, such as patchbay. On a Mac it prints a Touch ID page your person "
-                "opens and confirms within 5 minutes.",
+                ["regents", "auth", "login"],
+                "Ask your person first. This makes this machine's agent key, then signs in to "
+                "regents.sh (one sign-in covers every product). On a Mac it prints a Touch ID "
+                "page your person opens and confirms within 5 minutes.",
             )
         ]
     if not sign_ins:
         return [
             run(
-                ["regents", "auth", "login", "--site", "<site>"],
-                "Sign in to the site you need, such as patchbay. On a Mac, the first signed "
-                "command after a restart prints a Touch ID page your person confirms, so ask them "
-                "first.",
+                ["regents", "auth", "login"],
+                "Sign in to regents.sh (one sign-in covers every product). On a Mac, the first "
+                "signed command after a restart prints a Touch ID page your person confirms, so "
+                "ask them first.",
             )
         ]
     steps = [
@@ -318,7 +353,7 @@ def after_status(answer: dict[str, Any]) -> list[Step]:
     ]
     pairing = answer.get("pairing_status")
     if isinstance(pairing, dict) and unpaired(pairing):
-        platform = next(p for p in pinned_platforms() if p.site == pairing["site"])
+        platform = _preferred_platform(pairing["site"])
         steps += pair_first(platform.name, platform.host)
     return steps or [done("Signed in and nothing waits; nothing more to run.")]
 
@@ -610,10 +645,14 @@ def probe_of(platform: Platform) -> Command | None:
     )
 
 
-def pairing_status(platform: Platform, probe: Command, timeout_ms: int) -> dict[str, Any]:
+def pairing_status(
+    platform: Platform, probe: Command, timeout_ms: int, *, base_url: str | None = None
+) -> dict[str, Any]:
     """The site's answer to its probe, at its address, signed with this machine's key and its
     sign-in to the site."""
-    base = base_address(None, platform.env_var, platform.base_url)
+    base = base_address(
+        base_url, platform.env_var, platform.base_url, fallback_env_var=platform.fallback_env_var
+    )
     siwa.signs_for(platform.site, base, timeout_ms)
     request = Request(probe.method, probe.path)
     signed = replace(
@@ -622,10 +661,22 @@ def pairing_status(platform: Platform, probe: Command, timeout_ms: int) -> dict[
     return data_with(send(base, signed, timeout_ms))
 
 
+def _preferred_platform(site: str) -> Platform:
+    """The primary command tree for `site` (preferring `protocol` for unified `regents`)."""
+    target = canonical_site(site)
+    candidates = [p for p in pinned_platforms() if p.site == target]
+    return next((p for p in candidates if p.name == "protocol"), candidates[0])
+
+
 def identity_probe(site: str) -> tuple[Platform, Command]:
     """The site's command tree and its pinned read-only probe."""
-    for platform in pinned_platforms():
-        probe = probe_of(platform) if platform.site == site else None
+    target = canonical_site(site)
+    ordered = sorted(
+        (p for p in pinned_platforms() if p.site == target),
+        key=lambda p: (0 if p.name == "protocol" else 1, p.name),
+    )
+    for platform in ordered:
+        probe = probe_of(platform)
         if probe is not None:
             return platform, probe
     raise CommandError(

@@ -392,7 +392,7 @@
         }
       }
     },
-    "/api/model-climb/v1/reports": {
+    "/api/v1/techtree/model-climb/reports": {
       "get": {
         "operationId": "model_climb_reports",
         "summary": "The Model Climb reports the agent's person has kept, newest first",
@@ -729,7 +729,7 @@
         }
       }
     },
-    "/api/model-climb/v1/reports/{digest}": {
+    "/api/v1/techtree/model-climb/reports/{digest}": {
       "get": {
         "operationId": "model_climb_report",
         "summary": "One of the person's Model Climb reports, with its whole proof",
@@ -2641,7 +2641,7 @@
         }
       }
     },
-    "/api/v1/publications": {
+    "/api/v1/techtree/publications": {
       "get": {
         "operationId": "listPublications",
         "summary": "One page of the Result log, newest arrival first",
@@ -3061,7 +3061,7 @@
         }
       }
     },
-    "/api/v1/publications/{bundle_digest}": {
+    "/api/v1/techtree/publications/{bundle_digest}": {
       "get": {
         "operationId": "getPublication",
         "summary": "One published Result",
@@ -3166,7 +3166,7 @@
         }
       }
     },
-    "/api/v1/publications/{bundle_digest}/bundle": {
+    "/api/v1/techtree/publications/{bundle_digest}/bundle": {
       "get": {
         "operationId": "getPublicationBundle",
         "summary": "The exact bytes a Result was submitted as",
@@ -3505,6 +3505,42 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/techtree/account/projects": {
+      "get": {
+        "operationId": "listTechtreeProjects",
+        "summary": "List delivered Techtree projects for the paired owner",
+        "responses": {
+          "200": {
+            "description": "Delivered projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/techtree/account/projects/{id}": {
+      "get": {
+        "operationId": "getTechtreeProject",
+        "summary": "Read one delivered Techtree project",
+        "responses": {
+          "200": {
+            "description": "Delivered project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }

@@ -26,16 +26,22 @@ _ENCODING_HEADERS: Final = frozenset({"content-encoding", "content-length", "tra
 
 
 def site_base(flag: str | None) -> str:
-    """`--base-url`, then `TECHTREE_BASE_URL`, then the origin this release publishes to."""
+    """`--base-url`, then `TECHTREE_BASE_URL`, then `REGENTS_BASE_URL`, then the origin this
+    release publishes to."""
     endpoint = parse_release_core(packaged_release_core_bytes()).publication.submission_endpoint
     parts = urlsplit(str(endpoint))
-    return base_address(flag, BASE_URL_VARIABLE, f"{parts.scheme}://{parts.netloc}")
+    return base_address(
+        flag,
+        BASE_URL_VARIABLE,
+        f"{parts.scheme}://{parts.netloc}",
+        fallback_env_var="REGENTS_BASE_URL",
+    )
 
 
 def get_json(base: str, *segments: str) -> Any:
-    """GET `base` + `/api/v1/<segments>` and return the JSON answer, or raise the site's refusal
-    with its code, message and hint."""
-    path = "/api/v1/" + "/".join(quote(segment, safe=":") for segment in segments)
+    """GET `base` + `/api/v1/techtree/<segments>` and return the JSON answer, or raise the site's
+    refusal with its code, message and hint."""
+    path = "/api/v1/techtree/" + "/".join(quote(segment, safe=":") for segment in segments)
     try:
         with httpx.Client(timeout=_TIMEOUT_SECONDS) as session:
             request = session.build_request(

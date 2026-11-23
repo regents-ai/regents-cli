@@ -59,9 +59,19 @@ BEHIND = "update_available"
 
 def doctor_command(platform: Platform) -> click.Command:
     def run(as_json: bool, base_url: str | None, timeout_ms: int) -> None:
-        base = base_address(base_url, platform.env_var, platform.base_url)
+        base = base_address(
+            base_url,
+            platform.env_var,
+            platform.base_url,
+            fallback_env_var=platform.fallback_env_var,
+        )
         checks = site_checks(platform, base, timeout_ms, may_sign=True)
-        found: dict[str, Any] = {"site": platform.site, "base_url": base, "checks": checks}
+        found: dict[str, Any] = {
+            "site": platform.site,
+            "product": platform.name,
+            "base_url": base,
+            "checks": checks,
+        }
         failed = [c for c in checks if not c["ok"]]
         if failed:
             message = f"{len(failed)} of {len(checks)} checks failed."
@@ -81,7 +91,14 @@ def doctor_command(platform: Platform) -> click.Command:
         callback=run,
         params=[
             click.Option(["--json", "as_json"], is_flag=True, help="Print the answer as JSON."),
-            click.Option(["--base-url"], help=f"The site's address; also {platform.env_var}."),
+            click.Option(
+                ["--base-url"],
+                help=(
+                    f"The site's address; also {platform.env_var} or {platform.fallback_env_var}."
+                    if platform.fallback_env_var
+                    else f"The site's address; also {platform.env_var}."
+                ),
+            ),
             click.Option(
                 ["--timeout-ms"],
                 type=click.IntRange(1, 300_000),
@@ -96,28 +113,36 @@ def doctor_command(platform: Platform) -> click.Command:
 
 
 def site_checks(
-    platform: Platform, base: str, timeout_ms: int, *, may_sign: bool
+    platform: Platform,
+    base: str,
+    timeout_ms: int,
+    *,
+    may_sign: bool,
+    include_shared: bool = True,
 ) -> list[dict[str, Any]]:
     """The site at `base` answers, its public reads that need no input answer, this regents is
     the release it names or newer, and, for a site with signed commands, the sign-in to it holds.
     Signing checks the sign-in only when `may_sign`; otherwise the sign-in is left unchecked."""
-    checks = [check("site answers", lambda: site_answers(base, timeout_ms))]
+    checks: list[dict[str, Any]] = []
+    if include_shared:
+        checks.append(check("site answers", lambda: site_answers(base, timeout_ms)))
     checks += [
         check(" ".join(c.words), partial(read_answers, base, c, timeout_ms))
         for c in platform.commands
         if needs_nothing(c)
     ]
-    named = release_named(base, timeout_ms)
-    if named is not None:
-        host = urlsplit(base).netloc
-        checks.append(check(RELEASE, lambda: release_current(host, named)))
-    if any(c.signed for c in platform.commands):
-        checks.append(
-            check(
-                SIGN_IN,
-                lambda: sign_in_good(platform.site, base, timeout_ms, may_sign=may_sign),
+    if include_shared:
+        named = release_named(base, timeout_ms)
+        if named is not None:
+            host = urlsplit(base).netloc
+            checks.append(check(RELEASE, lambda: release_current(host, named)))
+        if any(c.signed for c in platform.commands):
+            checks.append(
+                check(
+                    SIGN_IN,
+                    lambda: sign_in_good(platform.site, base, timeout_ms, may_sign=may_sign),
+                )
             )
-        )
     return checks
 
 

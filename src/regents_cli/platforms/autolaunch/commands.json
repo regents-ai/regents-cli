@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/regents-ai/regents-cli/main/src/regents_cli/schemas/commands.v1.json",
   "format": "regents.commands.v1",
   "platform": "autolaunch",
-  "base_url": "https://autolaunch.sh",
+  "base_url": "https://regents.sh",
   "notes": [
     "No wallet, launch, treasury, spending or profile mutation commands. Private inputs are JSON stdin."
   ],
@@ -13,7 +13,7 @@
       "operation_id": "listAuctions",
       "webmcp": "autolaunch_auctions",
       "method": "GET",
-      "path": "/api/v1/auctions",
+      "path": "/api/v1/autolaunch/auctions",
       "authority": "public",
       "effect": "read",
       "flags": [
@@ -138,7 +138,7 @@
       "operation_id": "getAuction",
       "webmcp": "autolaunch_auction",
       "method": "GET",
-      "path": "/api/v1/auctions/{id}",
+      "path": "/api/v1/autolaunch/auctions/{id}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -157,7 +157,7 @@
       "operation_id": "countAuctions",
       "webmcp": "autolaunch_auction_counts",
       "method": "GET",
-      "path": "/api/v1/auction-counts",
+      "path": "/api/v1/autolaunch/auction-counts",
       "authority": "public",
       "effect": "read"
     },
@@ -167,7 +167,7 @@
       "operation_id": "quoteAuctionBid",
       "webmcp": "autolaunch_bid_quote",
       "method": "POST",
-      "path": "/api/v1/auctions/{id}/bid-quote",
+      "path": "/api/v1/autolaunch/auctions/{id}/bid-quote",
       "authority": "public",
       "effect": "quote",
       "flags": [
@@ -203,7 +203,7 @@
       "operation_id": "listTokens",
       "webmcp": "autolaunch_tokens",
       "method": "GET",
-      "path": "/api/v1/tokens",
+      "path": "/api/v1/autolaunch/tokens",
       "authority": "public",
       "effect": "read",
       "flags": [
@@ -300,7 +300,7 @@
       "operation_id": "getToken",
       "webmcp": "autolaunch_token",
       "method": "GET",
-      "path": "/api/v1/tokens/{id}",
+      "path": "/api/v1/autolaunch/tokens/{id}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -319,7 +319,7 @@
       "operation_id": "getTreasurySecurity",
       "webmcp": "autolaunch_treasury",
       "method": "GET",
-      "path": "/api/v1/treasury-security/{address}",
+      "path": "/api/v1/autolaunch/treasury-security/{address}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -384,7 +384,7 @@
       "description": "Read my Revstake token draft. Signed: the CLI signs it with your own agent key. Browser sign-in is not agent authority.",
       "operation_id": "autolaunch_revstake_draft",
       "method": "GET",
-      "path": "/api/agent/v1/drafts/revstake",
+      "path": "/api/agent/v1/autolaunch/drafts/revstake",
       "authority": "paired_agent",
       "effect": "read"
     },
@@ -393,7 +393,7 @@
       "description": "Fill in my Revstake launch draft: the token's details, its picture and its treasury. My person opens the create page, sees every field I set named, and signs the launch; I never launch, sign or spend. The acknowledgement for a treasury owned by a private key is my person's alone. Browser sign-in is not agent authority. Prelaunch read-only mode refuses this save; check the returned status.",
       "operation_id": "autolaunch_revstake_draft_save",
       "method": "PATCH",
-      "path": "/api/agent/v1/drafts/revstake",
+      "path": "/api/agent/v1/autolaunch/drafts/revstake",
       "authority": "paired_agent",
       "effect": "write",
       "stdin_fields": [
@@ -476,7 +476,7 @@
       "description": "Read my Memestock token draft. Signed: the CLI signs it with your own agent key. Browser sign-in is not agent authority.",
       "operation_id": "autolaunch_memestock_draft",
       "method": "GET",
-      "path": "/api/agent/v1/drafts/memestock",
+      "path": "/api/agent/v1/autolaunch/drafts/memestock",
       "authority": "paired_agent",
       "effect": "read"
     },
@@ -485,7 +485,7 @@
       "description": "Fill in my Memestock launch draft: the token's details, its picture, its chain and its paired stock. My person opens the create page, sees every field I set named, and signs the launch; I never launch, sign or spend. Browser sign-in is not agent authority. Prelaunch read-only mode refuses this save; check the returned status.",
       "operation_id": "autolaunch_memestock_draft_save",
       "method": "PATCH",
-      "path": "/api/agent/v1/drafts/memestock",
+      "path": "/api/agent/v1/autolaunch/drafts/memestock",
       "authority": "paired_agent",
       "effect": "write",
       "stdin_fields": [
@@ -568,7 +568,7 @@
       "description": "Read my bids and holdings, when the chain can be read. Signed: the CLI signs it with your own agent key. Browser sign-in is not agent authority.",
       "operation_id": "autolaunch_my_positions",
       "method": "GET",
-      "path": "/api/agent/v1/positions",
+      "path": "/api/agent/v1/autolaunch/positions",
       "authority": "paired_agent",
       "effect": "read",
       "next_steps": [
@@ -593,7 +593,7 @@
       "operation_id": "getCoveredCallBook",
       "webmcp": "autolaunch_covered_call_listings",
       "method": "GET",
-      "path": "/api/v1/covered-calls/{symbol}",
+      "path": "/api/v1/autolaunch/covered-calls/{symbol}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -612,7 +612,7 @@
       "operation_id": "quoteCoveredCall",
       "webmcp": "autolaunch_covered_call_quote",
       "method": "POST",
-      "path": "/api/v1/covered-calls/{symbol}/quote",
+      "path": "/api/v1/autolaunch/covered-calls/{symbol}/quote",
       "authority": "public",
       "effect": "quote",
       "arguments": [
@@ -670,7 +670,7 @@
       "operation_id": "autolaunch_my_covered_calls",
       "webmcp": "autolaunch_my_covered_calls",
       "method": "GET",
-      "path": "/api/agent/v1/covered-calls/{symbol}/positions",
+      "path": "/api/agent/v1/autolaunch/covered-calls/{symbol}/positions",
       "authority": "paired_agent",
       "effect": "read",
       "arguments": [
@@ -689,7 +689,7 @@
       "operation_id": "autolaunch_covered_call_prepare",
       "webmcp": "autolaunch_covered_call_prepare",
       "method": "POST",
-      "path": "/api/agent/v1/covered-calls/{symbol}/steps",
+      "path": "/api/agent/v1/autolaunch/covered-calls/{symbol}/steps",
       "authority": "paired_agent",
       "effect": "prepare",
       "arguments": [
@@ -798,7 +798,7 @@
       "operation_id": "listExposureSeries",
       "webmcp": "autolaunch_after_hour_stocks_list",
       "method": "GET",
-      "path": "/api/v1/after-hour-stocks",
+      "path": "/api/v1/autolaunch/after-hour-stocks",
       "authority": "public",
       "effect": "read"
     },
@@ -808,7 +808,7 @@
       "operation_id": "getExposureSeries",
       "webmcp": "autolaunch_after_hour_stocks_series",
       "method": "GET",
-      "path": "/api/v1/after-hour-stocks/{series}",
+      "path": "/api/v1/autolaunch/after-hour-stocks/{series}",
       "authority": "public",
       "effect": "read",
       "arguments": [
@@ -827,7 +827,7 @@
       "operation_id": "autolaunch_my_after_hour_stocks",
       "webmcp": "autolaunch_my_after_hour_stocks",
       "method": "GET",
-      "path": "/api/agent/v1/after-hour-stocks/{series}/holdings",
+      "path": "/api/agent/v1/autolaunch/after-hour-stocks/{series}/holdings",
       "authority": "paired_agent",
       "effect": "read",
       "arguments": [
@@ -846,7 +846,7 @@
       "operation_id": "autolaunch_after_hour_stocks_prepare",
       "webmcp": "autolaunch_after_hour_stocks_prepare",
       "method": "POST",
-      "path": "/api/agent/v1/after-hour-stocks/{series}/steps",
+      "path": "/api/agent/v1/autolaunch/after-hour-stocks/{series}/steps",
       "authority": "paired_agent",
       "effect": "prepare",
       "arguments": [
@@ -934,7 +934,7 @@
       "operation_id": "autolaunch_earn_products",
       "webmcp": "autolaunch_earn_products",
       "method": "GET",
-      "path": "/api/v1/earn/products",
+      "path": "/api/v1/autolaunch/earn/products",
       "authority": "public",
       "effect": "read"
     },
@@ -944,7 +944,7 @@
       "operation_id": "autolaunch_earn_positions",
       "webmcp": "autolaunch_earn_positions",
       "method": "GET",
-      "path": "/api/agent/v1/earn/positions",
+      "path": "/api/agent/v1/autolaunch/earn/positions",
       "authority": "paired_agent",
       "effect": "read"
     },
@@ -954,7 +954,7 @@
       "operation_id": "autolaunch_earn_quote",
       "webmcp": "autolaunch_earn_quote",
       "method": "POST",
-      "path": "/api/agent/v1/earn/quote",
+      "path": "/api/agent/v1/autolaunch/earn/quote",
       "authority": "paired_agent",
       "effect": "quote",
       "flags": [
@@ -1009,7 +1009,7 @@
       "operation_id": "autolaunch_earn_prepare",
       "webmcp": "autolaunch_earn_prepare",
       "method": "POST",
-      "path": "/api/agent/v1/earn/steps",
+      "path": "/api/agent/v1/autolaunch/earn/steps",
       "authority": "paired_agent",
       "effect": "prepare",
       "flags": [

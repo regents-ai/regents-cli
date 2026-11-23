@@ -19,9 +19,19 @@ type Effect = Literal["read", "quote", "write", "prepare", "payment"]
 #: How long `regents` waits for each answer, unless a command names its own `timeout_ms`.
 DEFAULT_TIMEOUT_MS: Final = 30_000
 
-#: The one command tree named apart from its site (founder, 2026-09-28): Regents' commands read
-#: `regents protocol …` rather than `regents regents …`, and sign in to the site `regents`.
-SIGN_IN_SITES: Final = {"protocol": "regents"}
+#: Unified one-site namespaces all sign in once to `regents` (`https://regents.sh`).
+SIGN_IN_SITES: Final[dict[str, str]] = {
+    "protocol": "regents",
+    "keyfleet": "regents",
+    "autolaunch": "regents",
+    "patchbay": "regents",
+    "techtree": "regents",
+}
+
+
+def canonical_site(site: str) -> str:
+    """Map a product namespace or legacy site alias to its unified sign-in site."""
+    return SIGN_IN_SITES.get(site, site)
 
 
 @dataclass(frozen=True, slots=True)
@@ -184,12 +194,17 @@ class Platform:
 
     @property
     def host(self) -> str:
-        """The site's host, such as keyfleet.ai."""
+        """The site's host, such as regents.sh."""
         return urlsplit(self.base_url).netloc
 
     @property
     def env_var(self) -> str:
         return f"{self.name.upper().replace('-', '_')}_BASE_URL"
+
+    @property
+    def fallback_env_var(self) -> str | None:
+        """Shared base-URL variable for unified one-site namespaces."""
+        return "REGENTS_BASE_URL" if self.site == "regents" else None
 
     @classmethod
     def parse(cls, raw: dict[str, Any]) -> Platform:

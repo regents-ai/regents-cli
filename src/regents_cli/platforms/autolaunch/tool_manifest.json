@@ -1,5 +1,5 @@
 {
-  "audience": "autolaunch",
+  "audience": "regents",
   "proof_headers": [
     "x-siwa-signature",
     "x-siwa-signature-input",
@@ -80,7 +80,7 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "Safe integer; the API clamps it to 1\u201350. Defaults to 50."
+            "description": "Safe integer; the API clamps it to 1–50. Defaults to 50."
           }
         },
         "required": [],
@@ -94,7 +94,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/auctions",
+      "route": "GET /api/v1/autolaunch/auctions",
       "scope": "site"
     },
     {
@@ -122,7 +122,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/auctions/{id}",
+      "route": "GET /api/v1/autolaunch/auctions/{id}",
       "scope": "site"
     },
     {
@@ -143,7 +143,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/auction-counts",
+      "route": "GET /api/v1/autolaunch/auction-counts",
       "scope": "site"
     },
     {
@@ -194,7 +194,7 @@
             "type": "integer",
             "minimum": -9007199254740991,
             "maximum": 9007199254740991,
-            "description": "Safe integer; the API clamps it to 1\u2013100. Defaults to 100."
+            "description": "Safe integer; the API clamps it to 1–100. Defaults to 100."
           }
         },
         "required": [],
@@ -208,7 +208,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/tokens",
+      "route": "GET /api/v1/autolaunch/tokens",
       "scope": "site"
     },
     {
@@ -236,7 +236,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/tokens/{id}",
+      "route": "GET /api/v1/autolaunch/tokens/{id}",
       "scope": "site"
     },
     {
@@ -264,7 +264,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/v1/treasury-security/{address}",
+      "route": "GET /api/v1/autolaunch/treasury-security/{address}",
       "scope": "site"
     },
     {
@@ -302,7 +302,7 @@
       "requires": "none",
       "state_changing": false,
       "payment": "none",
-      "route": "POST /api/v1/auctions/{id}/bid-quote",
+      "route": "POST /api/v1/autolaunch/auctions/{id}/bid-quote",
       "scope": "site"
     },
     {
@@ -378,7 +378,7 @@
       "requires": "siwa_and_pairing",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/agent/v1/drafts/revstake",
+      "route": "GET /api/agent/v1/autolaunch/drafts/revstake",
       "scope": "site",
       "authentication": "siwa_per_request",
       "pairing_required": true,
@@ -470,7 +470,7 @@
       "requires": "siwa_and_pairing",
       "state_changing": true,
       "payment": "none",
-      "route": "PATCH /api/agent/v1/drafts/revstake",
+      "route": "PATCH /api/agent/v1/autolaunch/drafts/revstake",
       "scope": "site",
       "authentication": "siwa_per_request",
       "pairing_required": true,
@@ -498,7 +498,7 @@
       "requires": "siwa_and_pairing",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/agent/v1/drafts/memestock",
+      "route": "GET /api/agent/v1/autolaunch/drafts/memestock",
       "scope": "site",
       "authentication": "siwa_per_request",
       "pairing_required": true,
@@ -588,7 +588,7 @@
       "requires": "siwa_and_pairing",
       "state_changing": true,
       "payment": "none",
-      "route": "PATCH /api/agent/v1/drafts/memestock",
+      "route": "PATCH /api/agent/v1/autolaunch/drafts/memestock",
       "scope": "site",
       "authentication": "siwa_per_request",
       "pairing_required": true,
@@ -616,7 +616,7 @@
       "requires": "siwa_and_pairing",
       "state_changing": false,
       "payment": "none",
-      "route": "GET /api/agent/v1/positions",
+      "route": "GET /api/agent/v1/autolaunch/positions",
       "scope": "site",
       "authentication": "siwa_per_request",
       "pairing_required": true,

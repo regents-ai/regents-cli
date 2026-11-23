@@ -43,8 +43,8 @@ HELP_PAGES: Final = frozenset(
 
 
 def help_page(code: str) -> str | None:
-    """The patchbay.help page for an error, whether `regents` or a site raised it."""
-    return f"https://patchbay.help/errors/{code}" if code in HELP_PAGES else None
+    """The Patchbay page on regents.sh for an error, whether `regents` or a site raised it."""
+    return f"https://regents.sh/patchbay/errors/{code}" if code in HELP_PAGES else None
 
 
 class CommandError(Exception):

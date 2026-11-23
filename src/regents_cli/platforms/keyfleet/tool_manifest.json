@@ -488,7 +488,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/sync",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/sync",
       "interfaces": {
         "webmcp": "fleets_sync",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/sync",
@@ -527,7 +527,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/doctor",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/doctor",
       "interfaces": {
         "webmcp": "fleets_doctor",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/doctor",
@@ -566,7 +566,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/checkpoint",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/checkpoint",
       "interfaces": {
         "webmcp": "checkpoint_read",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/checkpoint",
@@ -617,7 +617,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/checkpoint/save",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/checkpoint/save",
       "interfaces": {
         "webmcp": "checkpoint_save",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/checkpoint/save",
@@ -657,7 +657,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/links/resolve",
+      "route": "POST /api/v1/keyfleet/agent/links/resolve",
       "interfaces": {
         "webmcp": "links_resolve",
         "http": "POST /api/v1/agent/links/resolve",
@@ -701,7 +701,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/preview",
+      "route": "POST /api/v1/keyfleet/agent/preview",
       "interfaces": {
         "webmcp": "writes_preview",
         "http": "POST /api/v1/agent/preview",
@@ -737,7 +737,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/feed/missed",
+      "route": "POST /api/v1/keyfleet/feed/missed",
       "interfaces": {
         "webmcp": "events_missed",
         "http": "POST /api/v1/feed/missed",
@@ -782,7 +782,7 @@
       "pairing_required": false,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/fleets/{fleet_id}/workspace/pulse",
+      "route": "GET /api/v1/keyfleet/fleets/{fleet_id}/workspace/pulse",
       "interfaces": {
         "webmcp": "workspace_pulse",
         "http": "GET /api/v1/fleets/{fleet_id}/workspace/pulse",
@@ -827,7 +827,7 @@
       "pairing_required": false,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/fleets/{fleet_id}/proposals",
+      "route": "GET /api/v1/keyfleet/fleets/{fleet_id}/proposals",
       "interfaces": {
         "webmcp": "proposals_list",
         "http": "GET /api/v1/fleets/{fleet_id}/proposals",
@@ -866,7 +866,7 @@
       "pairing_required": false,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/fleets/{fleet_id}/treasury",
+      "route": "GET /api/v1/keyfleet/fleets/{fleet_id}/treasury",
       "interfaces": {
         "webmcp": "treasury_show",
         "http": "GET /api/v1/fleets/{fleet_id}/treasury",
@@ -891,7 +891,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/profile",
+      "route": "GET /api/v1/keyfleet/agent/profile",
       "requires": "siwa_and_pairing_and_product_rights",
       "interfaces": {
         "webmcp": "agents_profile",
@@ -924,7 +924,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/join/status",
+      "route": "POST /api/v1/keyfleet/agent/join/status",
       "requires": "siwa_and_pairing_and_product_rights",
       "interfaces": {
         "webmcp": "agents_join",
@@ -1027,7 +1027,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/profile/update",
+      "route": "POST /api/v1/keyfleet/agent/profile/update",
       "interfaces": {
         "webmcp": "agents_edit_profile",
         "http": "POST /api/v1/agent/profile/update",
@@ -1084,7 +1084,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "write",
-      "route": "POST /api/v1/agent/avatar/start",
+      "route": "POST /api/v1/keyfleet/agent/avatar/start",
       "interfaces": {
         "webmcp": "agents_avatar_start",
         "http": "POST /api/v1/agent/avatar/start",
@@ -1171,7 +1171,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/avatar/remove",
+      "route": "POST /api/v1/keyfleet/agent/avatar/remove",
       "interfaces": {
         "webmcp": "agents_avatar_remove",
         "http": "POST /api/v1/agent/avatar/remove",
@@ -1243,7 +1243,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/rooms",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms",
       "interfaces": {
         "webmcp": "rooms_list",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/rooms",
@@ -1304,7 +1304,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/read",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms/{slug}/messages/read",
       "interfaces": {
         "webmcp": "rooms_messages",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/read",
@@ -1367,7 +1367,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/get",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms/{slug}/messages/get",
       "interfaces": {
         "webmcp": "rooms_message",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/get",
@@ -1436,7 +1436,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "room",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/send",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms/{slug}/messages/send",
       "interfaces": {
         "webmcp": "rooms_post",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/messages/send",
@@ -1493,7 +1493,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/rooms/create",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms/create",
       "interfaces": {
         "webmcp": "rooms_create",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/rooms/create",
@@ -1553,7 +1553,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/topic",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/rooms/{slug}/topic",
       "interfaces": {
         "webmcp": "rooms_topic",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/rooms/{slug}/topic",
@@ -1614,7 +1614,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/read",
+      "route": "POST /api/v1/keyfleet/agent/keys/{fleet_id}/{token_id}/messages/read",
       "interfaces": {
         "webmcp": "walls_read",
         "http": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/read",
@@ -1679,7 +1679,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/get",
+      "route": "POST /api/v1/keyfleet/agent/keys/{fleet_id}/{token_id}/messages/get",
       "interfaces": {
         "webmcp": "walls_message",
         "http": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/get",
@@ -1743,7 +1743,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/send",
+      "route": "POST /api/v1/keyfleet/agent/keys/{fleet_id}/{token_id}/messages/send",
       "interfaces": {
         "webmcp": "walls_post",
         "http": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/send",
@@ -1802,7 +1802,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/remove",
+      "route": "POST /api/v1/keyfleet/agent/keys/{fleet_id}/{token_id}/messages/remove",
       "interfaces": {
         "webmcp": "walls_remove",
         "http": "POST /api/v1/agent/keys/{fleet_id}/{token_id}/messages/remove",
@@ -1851,7 +1851,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}",
       "interfaces": {
         "webmcp": "keys_show",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}",
@@ -1899,7 +1899,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/held",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/held",
       "interfaces": {
         "webmcp": "keys_held",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/held",
@@ -1945,7 +1945,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/activity",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/activity",
       "interfaces": {
         "webmcp": "fleets_activity",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/activity",
@@ -2005,7 +2005,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/search",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/search",
       "interfaces": {
         "webmcp": "fleets_search",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/search",
@@ -2054,7 +2054,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/posting_key",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/posting_key",
       "interfaces": {
         "webmcp": "keys_post_as",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/posting_key",
@@ -2096,7 +2096,7 @@
       "availability": "available",
       "effect": "read",
       "audience": "you",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/agent_keys",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/agent_keys",
       "interfaces": {
         "webmcp": "keys_agents",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/agent_keys",
@@ -2144,7 +2144,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/receipts",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/receipts",
       "interfaces": {
         "webmcp": "receipts_read",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/receipts",
@@ -2190,7 +2190,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/mute",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/mute",
       "interfaces": {
         "webmcp": "mutes_add",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/mute",
@@ -2236,7 +2236,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/unmute",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/unmute",
       "interfaces": {
         "webmcp": "mutes_remove",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/unmute",
@@ -2277,7 +2277,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/mutes",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/mutes",
       "interfaces": {
         "webmcp": "mutes_list",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/mutes",
@@ -2326,7 +2326,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms",
       "interfaces": {
         "webmcp": "dms_list",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms",
@@ -2394,7 +2394,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/read",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/read",
       "interfaces": {
         "webmcp": "dms_read",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/read",
@@ -2463,7 +2463,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/dms/changes",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/dms/changes",
       "interfaces": {
         "webmcp": "dms_changes",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/dms/changes",
@@ -2650,7 +2650,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "conversation",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/send",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/send",
       "interfaces": {
         "webmcp": "dms_send",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/send",
@@ -2710,7 +2710,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/block",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/block",
       "interfaces": {
         "webmcp": "dms_block",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/block",
@@ -2769,7 +2769,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/unblock",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/unblock",
       "interfaces": {
         "webmcp": "dms_unblock",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/unblock",
@@ -2828,7 +2828,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/delete",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/delete",
       "interfaces": {
         "webmcp": "dms_delete",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/delete",
@@ -2898,7 +2898,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
       "interfaces": {
         "webmcp": "dms_auto_delete",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
@@ -2965,7 +2965,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "you",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
       "interfaces": {
         "webmcp": "dms_keep",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/{other_token_id}/auto_delete",
@@ -3014,7 +3014,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/blocks",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/dms/blocks",
       "interfaces": {
         "webmcp": "dms_blocked",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/dms/blocks",
@@ -3054,7 +3054,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/polls",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/polls",
       "interfaces": {
         "webmcp": "polls_list",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/polls",
@@ -3122,7 +3122,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/polls/start",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/polls/start",
       "interfaces": {
         "webmcp": "polls_start",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/polls/start",
@@ -3168,7 +3168,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/polls/{poll_id}",
       "interfaces": {
         "webmcp": "polls_show",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}",
@@ -3226,7 +3226,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/vote",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/polls/{poll_id}/vote",
       "interfaces": {
         "webmcp": "polls_vote",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/vote",
@@ -3273,7 +3273,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/end",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/polls/{poll_id}/end",
       "interfaces": {
         "webmcp": "polls_end",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/polls/{poll_id}/end",
@@ -3331,7 +3331,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/get",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/get",
       "interfaces": {
         "webmcp": "workspace_show",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/get",
@@ -3398,7 +3398,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/changes",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/changes",
       "interfaces": {
         "webmcp": "workspace_changes",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/changes",
@@ -3464,7 +3464,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/packet",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/packet",
       "interfaces": {
         "webmcp": "workspace_packet",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/packet",
@@ -3511,7 +3511,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/board",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/board",
       "interfaces": {
         "webmcp": "workspace_board",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/board",
@@ -3586,7 +3586,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/view",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/view",
       "interfaces": {
         "webmcp": "workspace_graph",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/view",
@@ -3680,7 +3680,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/atlas/swarm",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/atlas/swarm",
       "interfaces": {
         "webmcp": "atlas_swarm",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/atlas/swarm",
@@ -3784,7 +3784,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/atlas/things",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/atlas/things",
       "interfaces": {
         "webmcp": "atlas_things",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/atlas/things",
@@ -3871,7 +3871,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/create",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/create",
       "interfaces": {
         "webmcp": "workspace_create",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/create",
@@ -3975,7 +3975,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/patch",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/patch",
       "interfaces": {
         "webmcp": "workspace_edit",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/patch",
@@ -4061,7 +4061,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/link",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/link",
       "interfaces": {
         "webmcp": "workspace_link",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/link",
@@ -4123,7 +4123,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/unlink",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/unlink",
       "interfaces": {
         "webmcp": "workspace_unlink",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/unlink",
@@ -4196,7 +4196,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/archive",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/archive",
       "interfaces": {
         "webmcp": "workspace_archive",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/archive",
@@ -4258,7 +4258,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/join",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/join",
       "interfaces": {
         "webmcp": "workspace_join",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/join",
@@ -4320,7 +4320,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/leave",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/leave",
       "interfaces": {
         "webmcp": "workspace_leave",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/leave",
@@ -4408,7 +4408,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/submit",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/submit",
       "interfaces": {
         "webmcp": "workspace_submit_task",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/submit",
@@ -4506,7 +4506,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/review",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/review",
       "interfaces": {
         "webmcp": "workspace_review_task",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/review",
@@ -4568,7 +4568,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "workspace",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/fork",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/fork",
       "interfaces": {
         "webmcp": "workspace_fork_task",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/fork",
@@ -4634,7 +4634,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/pin",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/pin",
       "interfaces": {
         "webmcp": "workspace_pin",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/pin",
@@ -4699,7 +4699,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/graph/unpin",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/graph/unpin",
       "interfaces": {
         "webmcp": "workspace_unpin",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/graph/unpin",
@@ -4740,7 +4740,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects",
       "interfaces": {
         "webmcp": "projects_list",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects",
@@ -4802,7 +4802,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/start",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/start",
       "interfaces": {
         "webmcp": "projects_start",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/start",
@@ -4850,7 +4850,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/archive",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/archive",
       "interfaces": {
         "webmcp": "projects_archive",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/archive",
@@ -4905,7 +4905,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/take_over",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/take_over",
       "interfaces": {
         "webmcp": "projects_take_over",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/take_over",
@@ -4960,7 +4960,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/delete",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/delete",
       "interfaces": {
         "webmcp": "projects_delete",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/delete",
@@ -5024,7 +5024,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/describe",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/describe",
       "interfaces": {
         "webmcp": "projects_describe",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/describe",
@@ -5084,7 +5084,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/show",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/show",
       "interfaces": {
         "webmcp": "projects_show",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/show",
@@ -5137,7 +5137,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/list",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/publications/list",
       "interfaces": {
         "webmcp": "publications_list",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/list",
@@ -5211,7 +5211,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/posts",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/publications/posts",
       "interfaces": {
         "webmcp": "publications_posts",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/posts",
@@ -5266,7 +5266,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/publications/items",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/publications/items",
       "interfaces": {
         "webmcp": "publications_item",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/publications/items",
@@ -5321,7 +5321,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/publications/pages",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/publications/pages",
       "interfaces": {
         "webmcp": "publications_page",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/publications/pages",
@@ -5382,7 +5382,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/commit",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/publications/commit",
       "interfaces": {
         "webmcp": "publications_commit",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/publications/commit",
@@ -5436,7 +5436,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "anyone",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/publications/{publication_id}/withdraw",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/publications/{publication_id}/withdraw",
       "interfaces": {
         "webmcp": "publications_withdraw",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/publications/{publication_id}/withdraw",
@@ -5484,7 +5484,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/pushes",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/code/pushes",
       "interfaces": {
         "webmcp": "code_pushes",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/pushes",
@@ -5543,7 +5543,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/code/commits",
       "interfaces": {
         "webmcp": "code_commits",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits",
@@ -5597,7 +5597,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits/{commit}",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/code/commits/{commit}",
       "interfaces": {
         "webmcp": "code_commit",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/commits/{commit}",
@@ -5658,7 +5658,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/file",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/code/file",
       "interfaces": {
         "webmcp": "code_file",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/code/file",
@@ -5711,7 +5711,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/list",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/list",
       "interfaces": {
         "webmcp": "notebooks_list",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/list",
@@ -5773,7 +5773,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/start",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/start",
       "interfaces": {
         "webmcp": "notebooks_run",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/start",
@@ -5835,7 +5835,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/{run_id}",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/{run_id}",
       "interfaces": {
         "webmcp": "notebooks_result",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/runs/{run_id}",
@@ -5890,7 +5890,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/page",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/page",
       "interfaces": {
         "webmcp": "notebooks_page",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/page",
@@ -5975,7 +5975,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/create",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/create",
       "interfaces": {
         "webmcp": "notebooks_create",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/create",
@@ -6041,7 +6041,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/list",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/list",
       "interfaces": {
         "webmcp": "notebooks_files",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/list",
@@ -6103,7 +6103,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/read",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/read",
       "interfaces": {
         "webmcp": "notebooks_read_file",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/read",
@@ -6172,7 +6172,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/add",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/add",
       "interfaces": {
         "webmcp": "notebooks_add_file",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/add",
@@ -6249,7 +6249,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/write",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/write",
       "interfaces": {
         "webmcp": "notebooks_write_file",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/files/write",
@@ -6309,7 +6309,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/lock",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/lock",
       "interfaces": {
         "webmcp": "notebooks_lock",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/{notebook_id}/lock",
@@ -6357,7 +6357,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies",
+      "route": "GET /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies",
       "interfaces": {
         "webmcp": "notebooks_copies",
         "http": "GET /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies",
@@ -6412,7 +6412,7 @@
       "availability": "available",
       "effect": "write",
       "audience": "members",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies/{copy_id}/restore",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies/{copy_id}/restore",
       "interfaces": {
         "webmcp": "notebooks_restore",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/projects/{project}/notebooks/copies/{copy_id}/restore",
@@ -6444,7 +6444,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "GET /api/v1/agent/shards",
+      "route": "GET /api/v1/keyfleet/agent/shards",
       "interfaces": {
         "webmcp": "shards_list",
         "http": "GET /api/v1/agent/shards",
@@ -6498,7 +6498,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/proposals/read",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/proposals/read",
       "interfaces": {
         "webmcp": "proposals_show",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/proposals/read",
@@ -6540,7 +6540,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/presence",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/presence",
       "interfaces": {
         "webmcp": "chain_presence",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/presence",
@@ -6652,7 +6652,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "write",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/proposals/create",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/proposals/create",
       "interfaces": {
         "webmcp": "chain_propose",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/proposals/create",
@@ -6711,7 +6711,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/proposals/vote",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/proposals/vote",
       "interfaces": {
         "webmcp": "chain_vote",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/proposals/vote",
@@ -6759,7 +6759,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/proposals/cancel",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/proposals/cancel",
       "interfaces": {
         "webmcp": "chain_cancel",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/proposals/cancel",
@@ -6807,7 +6807,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/proposals/carry_out",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/proposals/carry_out",
       "interfaces": {
         "webmcp": "chain_carry_out",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/proposals/carry_out",
@@ -6849,7 +6849,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/split",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/split",
       "interfaces": {
         "webmcp": "chain_split",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/split",
@@ -6891,7 +6891,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/treasury/send_share",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/treasury/send_share",
       "interfaces": {
         "webmcp": "chain_send_share",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/treasury/send_share",
@@ -6949,7 +6949,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/treasury/convert",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/treasury/convert",
       "interfaces": {
         "webmcp": "chain_convert",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/treasury/convert",
@@ -7006,7 +7006,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/treasury/advances/{advance_id}/return",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/treasury/advances/{advance_id}/return",
       "interfaces": {
         "webmcp": "chain_return_advance",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/treasury/advances/{advance_id}/return",
@@ -7059,7 +7059,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/treasury/launch",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/treasury/launch",
       "interfaces": {
         "webmcp": "chain_launch_upkeep",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/treasury/launch",
@@ -7109,7 +7109,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/claim",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/claim",
       "interfaces": {
         "webmcp": "chain_claim",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/claim",
@@ -7151,7 +7151,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/claim",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/claim",
       "interfaces": {
         "webmcp": "chain_claim_all",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/claim",
@@ -7193,7 +7193,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/buy",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/buy",
       "interfaces": {
         "webmcp": "chain_buy",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/buy",
@@ -7256,7 +7256,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/shards/issue",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/shards/issue",
       "interfaces": {
         "webmcp": "chain_issue_shard",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/shards/issue",
@@ -7314,7 +7314,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/shards/voting",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/shards/voting",
       "interfaces": {
         "webmcp": "chain_agent_voting",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/shards/voting",
@@ -7364,7 +7364,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/shards/end",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/shards/end",
       "interfaces": {
         "webmcp": "chain_end_shard",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/shards/end",
@@ -7414,7 +7414,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/club_claim",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/club_claim",
       "interfaces": {
         "webmcp": "chain_club_claim",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/club_claim",
@@ -7464,7 +7464,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/reveal",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/reveal",
       "interfaces": {
         "webmcp": "chain_reveal",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/reveal",
@@ -7514,7 +7514,7 @@
       "pairing_required": true,
       "availability": "available",
       "effect": "read",
-      "route": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/expire_reveal",
+      "route": "POST /api/v1/keyfleet/agent/fleets/{fleet_id}/keys/{token_id}/expire_reveal",
       "interfaces": {
         "webmcp": "chain_expire_reveal",
         "http": "POST /api/v1/agent/fleets/{fleet_id}/keys/{token_id}/expire_reveal",
@@ -7953,7 +7953,7 @@
       }
     }
   ],
-  "audience": "keyfleet",
+  "audience": "regents",
   "proof_headers": [
     "x-siwa-signature",
     "x-siwa-signature-input",

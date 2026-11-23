@@ -24,12 +24,13 @@ from regents_cli.errors import (
     UsageError,
 )
 from regents_cli.http import same_origin, unreadable_address
-from regents_cli.platforms import Command, Platform, pinned_platforms
+from regents_cli.overview import overview_command
+from regents_cli.platforms import Command, Platform, canonical_site, pinned_platforms
 from regents_cli.runner import hinted, platform_group
 from regents_cli.techtree.cli import techtree_group
 
 # Rich help keeps each indented line on a line of its own, so every command can be copied whole.
-HELP = """Every Regents Labs site from one command line.
+HELP = """Every Regents Labs product from one command line (`https://regents.sh`).
 
 Start here:
 
@@ -39,26 +40,29 @@ See Keyfleet's fleets; no sign-in needed:
 Search Patchbay for a fix; no sign-in needed:
     regents patchbay threads search --query webmcp
 
-Ask your person first, then sign in; the first time makes a key on this machine, and on a Mac
-your person confirms a Touch ID page:
-    regents auth login --site keyfleet
+Ask your person first, then sign in once for every product on regents.sh; the first time makes
+a key on this machine, and on a Mac your person confirms a Touch ID page:
+    regents auth login
 
 Pair with your person; this says whether you are paired and how to pair:
-    regents keyfleet agents whoami
+    regents protocol agents whoami
+
+See your person's unified account overview across Keyfleet, Autolaunch, Patchbay and Techtree:
+    regents overview
 
 Stuck? Check this machine and every site at once, and get the one thing to do first:
     regents doctor
 
-Check a site answers, and your sign-in once you have one:
+Check one product's reads and sign-in:
     regents keyfleet doctor
 
 Get this machine ready to run a Techtree Climb:
     regents techtree setup
 
-Give your agent host a site's page tools, or its hosted MCP server, signed with your agent key;
-add one as a local MCP server:
-    regents browser --site keyfleet
-    regents mcp --site keyfleet
+Give your agent host regents.sh's page tools, or its unified hosted MCP server, signed with
+your agent key; add either as a local MCP server:
+    regents browser
+    regents mcp
 
 Add --help to any command to see what it does."""
 
@@ -88,7 +92,11 @@ def root() -> click.Group:
     )
     platforms = pinned_platforms()
     custom_groups = {"techtree": techtree_group()}
-    group.add_command(auth_group(sorted({p.site for p in platforms} | custom_groups.keys())))
+    auth_sites = sorted(
+        {p.site for p in platforms} | {p.name for p in platforms} | custom_groups.keys()
+    )
+    group.add_command(auth_group(auth_sites))
+    group.add_command(overview_command(platforms))
     for platform in platforms:
         group.add_command(platform_group(platform, custom_groups.pop(platform.name, None)))
     for custom in custom_groups.values():
@@ -201,8 +209,14 @@ def _invocation(
     platforms = pinned_platforms()
     platform: Platform | None = None
     if words[:1] == ["auth"]:
-        site = given.get("site")
-        platform = next((p for p in platforms if p.site == site), None)
+        raw_site = given.get("site")
+        site = canonical_site(raw_site) if isinstance(raw_site, str) else None
+        platform = next(
+            (p for p in platforms if p.site == site and p.name == "protocol"),
+            next((p for p in platforms if p.site == site), None),
+        )
+    elif words[:1] == ["overview"]:
+        platform = next((p for p in platforms if p.name == "protocol"), None)
     elif words:
         platform = next((p for p in platforms if p.name == words[0]), None)
     described = (
@@ -271,7 +285,12 @@ def _elsewhere(
     addresses = []
     if not auth or words[1:2] == ["status"]:
         flag = given.get("base_url")
-        site = flag if isinstance(flag, str) and flag else os.environ.get(platform.env_var)
+        site = (
+            flag
+            if isinstance(flag, str) and flag
+            else os.environ.get(platform.env_var)
+            or (os.environ.get(platform.fallback_env_var) if platform.fallback_env_var else None)
+        )
         addresses.append((site, platform.base_url))
     if auth or (described is not None and described.signed):
         addresses.append((os.environ.get("SIWA_BROKER"), siwa.BROKER))

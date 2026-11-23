@@ -26,9 +26,15 @@ CONTRIBUTOR_ADDRESS_HEADER: Final = "x-techtree-contributor-address"
 SKILL_NAME_HEADER: Final = "x-techtree-skill-name"
 SKILL_GITHUB_URL_HEADER: Final = "x-techtree-skill-github-url"
 
-#: An override must still name the approved endpoint: agent proof never travels elsewhere.
+#: An override must still name an approved endpoint: agent proof never travels elsewhere.
 ENDPOINT_VARIABLE: Final = "REGENTS_TECHTREE_PUBLICATION_ENDPOINT"
-APPROVED_ENDPOINT: Final = "https://techtree.sh/api/v1/publications"
+APPROVED_ENDPOINT: Final = "https://regents.sh/api/v1/techtree/publications"
+APPROVED_ENDPOINTS: Final[frozenset[str]] = frozenset(
+    {
+        APPROVED_ENDPOINT,
+        "https://techtree.sh/api/v1/publications",
+    }
+)
 
 PUBLICATION_ENDPOINT_INVALID: Final = "publication_endpoint_invalid"
 PUBLICATION_TRANSPORT_FAILED: Final = "publication_transport_failed"
@@ -70,14 +76,15 @@ class HttpsPublicationTransport:
         # The independent participant proof stays byte-for-byte intact inside this envelope.
         parts = urlsplit(endpoint)
         signed_request = Request("POST", parts.path, raw_content=body)
+        site = "techtree" if parts.netloc == "techtree.sh" else "regents"
         try:
-            receipt = siwa.current("techtree", int(_TIMEOUT_SECONDS * 1000))
+            receipt = siwa.current(site, int(_TIMEOUT_SECONDS * 1000))
             proof = siwa.sign(signed_request, receipt, f"{parts.scheme}://{parts.netloc}")
         except CommandError as error:
             # A signing command may include sensitive output in its error; never relay it.
             raise AuthenticationError(
                 "Techtree agent authentication failed before submission. "
-                "Use the agent's own configured signer and regents auth login --site techtree. "
+                f"Use the agent's own configured signer and regents auth login --site {site}. "
                 "Protected publication also requires a current account pairing.",
                 code=error.code,
             ) from None
@@ -186,7 +193,7 @@ def publication_endpoint(coordinates: PublicationCoordinates) -> str:
 
 def validated_endpoint(endpoint: str) -> str:
     """The endpoint, or a refusal of an address nothing may be sent to."""
-    if endpoint != APPROVED_ENDPOINT:
+    if endpoint not in APPROVED_ENDPOINTS:
         raise ValidationError(
             f"signed publications and withdrawals go only to {APPROVED_ENDPOINT}; "
             "no other endpoint is approved",

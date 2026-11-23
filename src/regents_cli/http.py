@@ -70,12 +70,17 @@ def _origin_key(value: str) -> tuple[str, str | None, int | None] | None:
     )
 
 
-def base_address(flag: str | None, env_var: str, site: str) -> str:
-    """--base-url, then <PLATFORM>_BASE_URL, then the site's own address."""
+def base_address(
+    flag: str | None, env_var: str, site: str, *, fallback_env_var: str | None = None
+) -> str:
+    """--base-url, then <PLATFORM>_BASE_URL, then REGENTS_BASE_URL (for unified one-site
+    namespaces), then the site's own address."""
     if flag is not None:
         return origin(flag, "--base-url")
     if value := os.environ.get(env_var):
         return origin(value, env_var)
+    if fallback_env_var is not None and (fallback := os.environ.get(fallback_env_var)):
+        return origin(fallback, fallback_env_var)
     return origin(site, "the site's address")
 
 

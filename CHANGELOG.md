@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+- Unified `protocol`, `keyfleet`, `autolaunch`, `patchbay`, and `techtree` onto the single `https://regents.sh` origin and single `"regents"` SIWA audience (`REGENTS_BASE_URL` fallback, deduplicated `regents doctor --all --base-url`, and merged 243-tool `regents browser` WebMCP manifest under `audience: "regents"`).
+- Added top-level `regents overview` (`--product`, `--json`, `--base-url`, `--timeout-ms`) and `regents protocol account overview` calling `GET /api/agent/v1/account/overview`, showing Keyfleet keys, Autolaunch portfolio/auctions, Patchbay posts/offers, Techtree projects, and recommended next steps for both human terminal output and JSON agents.
+- Synced one-site platform contracts, OpenAPI specs, tool manifests, and `platforms.lock.json` across all five unified products (adding `keyfleet seasons list/show`, `patchbay offers list/campaign`, `techtree account projects/project`, and removing obsolete `keyfleet preview`).
 - A signed command for a site the sign-in server lists no address for now says so in one line
   and asks your person to update `regents`. It used to list "none" and point at a sign-in server
   of your own. Nothing is signed or sent, as before.

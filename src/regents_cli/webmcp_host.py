@@ -25,7 +25,7 @@ import json
 import math
 import re
 import traceback
-from collections.abc import AsyncIterator, Awaitable
+from collections.abc import AsyncIterator, Awaitable, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -96,6 +96,30 @@ def tool_manifest(platform: Platform) -> dict[str, Any]:
         if fragment.name.endswith("_tools.json") and fragment.is_file():
             manifest["tools"].extend(json.loads(fragment.read_text("utf-8"))["tools"])
     return manifest
+
+
+def browser_tool_manifest(platform: Platform, platforms: Sequence[Platform]) -> dict[str, Any]:
+    """The combined WebMCP tool manifest for every product hosted on `platform.site`.
+
+    On unified `regents.sh`, pages under `/`, `/keyfleet/*`, `/autolaunch/*`, `/patchbay/*`, and
+    `/techtree/*` all sign for audience `regents`, so `regents browser` trusts the merged tool
+    definitions from every platform sharing `platform.site`.
+    """
+    merged = tool_manifest(platform)
+    merged["audience"] = platform.site
+    seen = {tool["name"] for tool in merged["tools"]}
+    for sibling in platforms:
+        if sibling.site != platform.site or sibling.name == platform.name:
+            continue
+        folder = files("regents_cli.platforms") / sibling.name
+        if not folder.joinpath("tool_manifest.json").is_file():
+            continue
+        extra = tool_manifest(sibling)
+        for tool in extra.get("tools", []):
+            if tool["name"] not in seen:
+                merged["tools"].append(tool)
+                seen.add(tool["name"])
+    return merged
 
 
 def origin_of(url: str) -> str | None:

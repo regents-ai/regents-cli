@@ -17,7 +17,7 @@ from regents_cli import siwa
 from regents_cli.errors import CommandError
 from regents_cli.http import Request, base_address
 from regents_cli.next_steps import human
-from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform
+from regents_cli.platforms import DEFAULT_TIMEOUT_MS, Platform, canonical_site
 
 #: Installs regents-cli with what `regents browser` and `regents mcp` both need. One line for
 #: both: a later `uv tool install` replaces the extras an earlier one chose.
@@ -35,29 +35,52 @@ BASE_URL = click.Option(
 )
 
 
+def _site_map(platforms: list[Platform]) -> dict[str, Platform]:
+    """Map each canonical site and unified product alias to its primary platform."""
+    sites: dict[str, Platform] = {}
+    for platform in sorted(platforms, key=lambda p: (0 if p.name == "protocol" else 1, p.name)):
+        sites.setdefault(platform.site, platform)
+        sites.setdefault(platform.name, sites[platform.site])
+    return sites
+
+
 def browser_command(platforms: list[Platform]) -> click.Command:
-    sites = {platform.site: platform for platform in platforms}
+    sites = _site_map(platforms)
+    default_site = "regents" if "regents" in sites else sorted(sites)[0]
 
     @click.command(
         "browser",
         help="A site's pages and the tools each page offers, for your agent host. Add it to your "
-        "agent host as a local MCP server: regents browser --site <site>. Pages open in a "
-        "hidden browser of its own with a fresh profile, never your own browser, and a signed "
-        "tool is signed with this machine's agent key, once for each call.\n\n"
+        "agent host as a local MCP server: regents browser (defaults to regents.sh across all "
+        "products, or pass --site <site>). Pages open in a hidden browser of its own with a fresh "
+        "profile, never your own browser, and a signed tool is signed with this machine's agent "
+        "key, once for each call.\n\n"
         f"Install it, then its Chromium:\n\n\b\n{INSTALL}\n{INSTALL_CHROMIUM}",
         params=[BASE_URL],
     )
-    @click.option("--site", required=True, type=click.Choice(sorted(sites)), help="The site.")
+    @click.option(
+        "--site",
+        default=default_site,
+        show_default=True,
+        type=click.Choice(sorted(sites)),
+        callback=lambda _ctx, _param, value: canonical_site(value),
+        help="The site (defaults to regents for unified regents.sh).",
+    )
     @click.option("--show-browser", is_flag=True, help="Show the browser window.")
     def run(site: str, base_url: str | None, show_browser: bool) -> None:
         platform = sites[site]
-        origin = base_address(base_url, platform.env_var, platform.base_url)
+        origin = base_address(
+            base_url,
+            platform.env_var,
+            platform.base_url,
+            fallback_env_var=platform.fallback_env_var,
+        )
         ready_to_browse()
         from regents_cli import webmcp_host
 
         bridge = webmcp_host.Bridge(
             origin=origin,
-            manifest=webmcp_host.tool_manifest(platform),
+            manifest=webmcp_host.browser_tool_manifest(platform, platforms),
             sign=key_signer(platform.site, origin),
         )
         host = webmcp_host.PageHost(bridge=bridge, show=show_browser)
@@ -67,17 +90,26 @@ def browser_command(platforms: list[Platform]) -> click.Command:
 
 
 def mcp_command(platforms: list[Platform]) -> click.Command:
-    sites = {platform.site: platform for platform in platforms}
+    sites = _site_map(platforms)
+    default_site = "regents" if "regents" in sites else sorted(sites)[0]
 
     @click.command(
         "mcp",
-        help="A site's MCP server, for your agent host. Add it to your agent host as a local "
-        "MCP server: regents mcp --site <site>. Each message is signed with this machine's "
-        "agent key, so the site knows your agent without a token.\n\n"
+        help="A site's hosted MCP server, for your agent host. Add it to your agent host as a "
+        "local MCP server: regents mcp (defaults to unified regents.sh/mcp covering Protocol, "
+        "Keyfleet, Autolaunch, Patchbay & Techtree, or pass --site <site>). Each message is "
+        "signed with this machine's agent key, so the site knows your agent without a token.\n\n"
         f"Install it:\n\n\b\n{INSTALL}",
         params=[BASE_URL],
     )
-    @click.option("--site", required=True, type=click.Choice(sorted(sites)), help="The site.")
+    @click.option(
+        "--site",
+        default=default_site,
+        show_default=True,
+        type=click.Choice(sorted(sites)),
+        callback=lambda _ctx, _param, value: canonical_site(value),
+        help="The site (defaults to regents for unified regents.sh/mcp).",
+    )
     def run(site: str, base_url: str | None) -> None:
         ready_to_proxy()
         import anyio
@@ -85,7 +117,12 @@ def mcp_command(platforms: list[Platform]) -> click.Command:
         from regents_cli import mcp_proxy
 
         platform = sites[site]
-        origin = base_address(base_url, platform.env_var, platform.base_url)
+        origin = base_address(
+            base_url,
+            platform.env_var,
+            platform.base_url,
+            fallback_env_var=platform.fallback_env_var,
+        )
         siwa.current(platform.site, DEFAULT_TIMEOUT_MS)
         anyio.run(mcp_proxy.serve, origin + MCP_PATH, key_signer(platform.site, origin))
 
