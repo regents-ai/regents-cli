@@ -5,6 +5,9 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+## 1.11.0 — 2026-11-24
+
+- Synced the embedded Touch ID page (`passkey.html`) with live `siwa-server` v112 (`https://regents.sh/patchbay` footer link).
 - Updated remaining CLI next-step prompts, error help docstrings, and `README.md` references from retired standalone domains (`patchbay.help`, `keyfleet.ai`, `techtree.sh`) to unified `https://regents.sh/*` paths.
 - Unified `protocol`, `keyfleet`, `autolaunch`, `patchbay`, and `techtree` onto the single `https://regents.sh` origin and single `"regents"` SIWA audience (`REGENTS_BASE_URL` fallback, deduplicated `regents doctor --all --base-url`, and merged 243-tool `regents browser` WebMCP manifest under `audience: "regents"`).
 - Added top-level `regents overview` (`--product`, `--json`, `--base-url`, `--timeout-ms`) and `regents protocol account overview` calling `GET /api/agent/v1/account/overview`, showing Keyfleet keys, Autolaunch portfolio/auctions, Patchbay posts/offers, Techtree projects, and recommended next steps for both human terminal output and JSON agents.
