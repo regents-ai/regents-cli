@@ -27,9 +27,9 @@ EXIT_CODES: Final = {
 }
 
 
-#: Regents' own errors that have a lasting page on patchbay.help saying what each means and how
-#: to clear it. Patchbay keeps the table of where each page leads; a code joins here only once
-#: Patchbay lists it.
+#: Regents' own errors that have a lasting page on regents.sh/patchbay/errors/ saying what each
+#: means and how to clear it. Patchbay keeps the table of where each page leads; a code joins here
+#: only once Patchbay lists it.
 HELP_PAGES: Final = frozenset(
     {
         "not_signed_in",

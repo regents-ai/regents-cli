@@ -167,8 +167,9 @@ def repairs(
 def reported(
     platform: Platform, base: str, words: Sequence[str], code: str, detail: str
 ) -> list[Step]:
-    """Search patchbay.help about a site that failed its checks, then report it there; a person
-    is told instead when Patchbay itself failed, or the checks ran against another address."""
+    """Search Patchbay (regents.sh/patchbay) about a site that failed its checks, then report it
+    there; a person is told instead when Patchbay itself failed, or the checks ran against another
+    address."""
     if not same_origin(base, platform.base_url):
         return [elsewhere(base, detail)]
     if platform.name == "patchbay":

@@ -1,8 +1,9 @@
 # regents
 
-One command line for every Regents Labs site: `regents patchbay …`, `regents techtree …` and
-`regents protocol …` for regents.sh itself. `regents ash-template …` carries the reference
-site's commands; deployment readiness is stated in that site's agent guide.
+One command line for Regents Labs on `https://regents.sh`: `regents overview`,
+`regents protocol …`, `regents patchbay …`, `regents autolaunch …`, `regents keyfleet …`, and
+`regents techtree …` share one origin and one `"regents"` SIWA audience. `regents ash-template …`
+carries the standalone open-source reference stack's commands.
 
 ```bash
 uv tool install --python 3.14 regents-cli
@@ -24,7 +25,8 @@ Every command answers the same way:
 - readable output by default, and `--json` for the site's answer with `next_steps`;
 - an empty HTTP 204 is success, shown as an empty object with `next_steps`;
 - errors as `{"error": {"code": "…", "message": "…"}}`, with `help` beside `error`, the
-  error's page on patchbay.help, for the errors that have one, such as `not_signed_in`;
+  error's page under `https://regents.sh/patchbay/errors/`, for the errors that have one, such as
+  `not_signed_in`;
 - the same exit codes everywhere (`regents --help` lists them);
 - the site's address from `--base-url`, then `<PLATFORM>_BASE_URL`, then the site's own address;
   a signed command signs only for an address the sign-in server lists for the site;
@@ -177,12 +179,11 @@ a Mac, the first signed command after a restart still needs your person's Touch 
 does then. A sign-in made with a key of your own through `--phase` is never renewed; once it runs
 out, sign in again the same way.
 
-A pairing works on every Regent site. A person signed in on a site makes a code with Pair New
-Agent in the site's account menu, such as on https://keyfleet.ai/, and the agent supplies
-string `code`, `name` and `harness` fields through private JSON stdin to that site's `agents pair`:
-`regents keyfleet agents pair` for Keyfleet, `regents protocol agents pair` for regents.sh. If a
-site answers `person_not_here`, the agent is paired but its person has not signed in on that site
-yet; they sign in there once.
+A pairing works across every product on `https://regents.sh`. A person signed in on
+https://regents.sh/account/agents makes a code with Pair New Agent, and the agent supplies
+string `code`, `name` and `harness` fields through private JSON stdin to
+`regents protocol agents pair` (or `<product> agents pair`). If a site answers `person_not_here`,
+the agent is paired but its person has not signed in on that site yet; they sign in there once.
 `regents auth status --site ash-template` reads that site's identity and pairing probe. It
 never sends the legacy check-in or awards Points. Its `pairing_status` answer includes the
 site's authenticated identity, pairing and effective access; this replaces `paired_with`.
@@ -243,11 +244,11 @@ again would send it again.
 
 ## Techtree publication sign-in
 
-`regents techtree publish` and `withdraw` require `regents auth login --site techtree`
-and a current pairing with the owner account. The site checks that pairing alongside the
-existing independent participant proof. Local experiments and proof verification stay offline.
-The signed JSON body is sent unchanged, up to 2,097,152 bytes, only to
-`https://techtree.sh/api/v1/publications`. A retry signs fresh request proof. A missing
+`regents techtree publish` and `withdraw` require `regents auth login --site regents`
+(or `--site techtree`) and a current pairing with the owner account. The site checks that pairing
+alongside the existing independent participant proof. Local experiments and proof verification stay
+offline. The signed JSON body is sent unchanged, up to 2,097,152 bytes, to
+`https://regents.sh/api/v1/techtree/publications`. A retry signs fresh request proof. A missing
 answer may mean the site accepted the submission; read the public result before retrying.
 
 An optional contributor address travels privately in its existing header. Reviews and

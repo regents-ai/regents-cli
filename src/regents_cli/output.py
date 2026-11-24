@@ -98,7 +98,7 @@ def emit(
 
 def emit_error(error: CommandError, next_steps: Sequence[Step], *, as_json: bool) -> None:
     """The failure and what to do about it, with `next_steps` beside `error` in JSON, and `help`,
-    the error's page on patchbay.help, when it has one."""
+    the error's page on regents.sh/patchbay/errors/, when it has one."""
     if as_json:
         page = help_page(error.code)
         found = {**error.as_json(), **({"help": page} if page else {})}
@@ -185,7 +185,7 @@ class _Report(Markdown):
 
 def _failure(error: CommandError, next_steps: Sequence[Step]) -> RenderableType:
     """The failure as the person reads it. A site's hint that a next step already says word for
-    word is shown once, in the steps, and the error's patchbay.help page is shown unless the
+    word is shown once, in the steps, and the error's Patchbay page is shown unless the
     site's words or the steps already carry it."""
     said = {step.say for step in next_steps}
     fields = {
