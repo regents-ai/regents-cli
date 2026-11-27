@@ -159,10 +159,24 @@ def body_problems(entry: dict[str, Any], body: Body | None) -> list[str]:
     stdin = entry.get("stdin_fields", [])
     fixed = set(entry.get("body", {}))
     sent = {i["field"] for i in inputs} | {f["field"] for f in stdin} | fixed
+    one_of_names = set(entry.get("required_one_of", []))
+    one_of_body_fields = {
+        i["field"]
+        for i in entry.get("flags", [])
+        if i["name"] in one_of_names and i["in"] == "body"
+    }
+    always_from_one_of = (
+        one_of_body_fields
+        if one_of_names
+        and len(one_of_body_fields) == 1
+        and all(f["in"] == "body" for f in entry.get("flags", []) if f["name"] in one_of_names)
+        else set()
+    )
     always = (
         {i["field"] for i in entry.get("arguments", []) if i["in"] == "body"}
         | {i["field"] for i in entry.get("flags", []) if i["in"] == "body" and i.get("required")}
         | {f["field"] for f in stdin if f.get("required")}
+        | always_from_one_of
     )
     operation = entry["operation_id"]
     if body is None:
@@ -250,8 +264,10 @@ def problems_in(description: Any, operations: dict[str, Operation]) -> list[str]
                 say(f"{i['name']}: only string and file inputs take enum")
             if "minimum" in i and i["type"] != "integer":
                 say(f"{i['name']}: only integer inputs take minimum")
-            if "maximum" in i and i["type"] not in ("integer", "file"):
-                say(f"{i['name']}: only integer and file inputs take maximum")
+            if "maximum" in i and i["type"] not in ("integer", "file", "text_file"):
+                say(f"{i['name']}: only integer, file and text_file inputs take maximum")
+            if i["type"] == "text_file" and (i["in"] != "body" or "maximum" not in i):
+                say(f"{i['name']}: a text_file input goes in the body and names its maximum bytes")
         for problem in file_problems(entry, operations.get(entry["operation_id"])):
             say(problem)
         site_urls = [i for i in args if i["type"] == "site_url"]

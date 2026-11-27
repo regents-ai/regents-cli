@@ -84,6 +84,8 @@ FILE_TYPES.add_type("image/webp", ".webp")
 def param_type(spec: Input) -> click.ParamType[Any]:
     if spec.type == "file":
         return click.Path(exists=True, dir_okay=False, readable=True)
+    if spec.type == "text_file":
+        return click.Path(exists=True, dir_okay=False, readable=True, allow_dash=True)
     if spec.enum is not None:
         return click.Choice(spec.enum)
     if spec.type == "integer":
@@ -345,6 +347,12 @@ def request_for(command: Command, given: dict[str, Any], base: str) -> Request:
             path = on_this_site(spec, str(value), command.path, base)
         elif spec.type == "file":
             sent = (spec, Path(value))
+        elif spec.type == "text_file":
+            if body is not None and spec.field in body:
+                raise UsageError(
+                    f"Give either --{spec.name} or another flag filling {spec.field}, not both."
+                )
+            body = {**(body or {}), spec.field: read_text_file(spec, str(value))}
         elif spec.location == "path":
             if str(value) in ("", ".", ".."):
                 raise UsageError(f"{spec.name.upper()} must name a record, not a dot path.")
@@ -354,6 +362,10 @@ def request_for(command: Command, given: dict[str, Any], base: str) -> Request:
         elif spec.location == "query":
             query[spec.field] = str(value)
         else:
+            if body is not None and spec.field in body:
+                raise UsageError(
+                    f"Give either --{spec.name} or another flag filling {spec.field}, not both."
+                )
             body = {**(body or {}), spec.field: value}
     if sent is not None:
         return file_request(command, *sent, path, query)
@@ -385,6 +397,28 @@ def on_this_site(spec: Input, value: str, route: str, base: str) -> str:
             "site answered it."
         )
     return parts.path
+
+
+def read_text_file(spec: Input, target: str) -> str:
+    """Read a UTF-8 text file (or '-' for stdin) up to `spec.maximum` bytes into a body string."""
+    limit = spec.maximum or 65_536
+    if target == "-":
+        raw = sys.stdin.buffer.read(limit + 1)
+    else:
+        file = Path(target)
+        if not file.is_file():
+            raise UsageError(f"--{spec.name} {file} is not a plain file.")
+        try:
+            with file.open("rb") as opened:
+                raw = opened.read(limit + 1)
+        except OSError as error:
+            raise UsageError(f"--{spec.name} {file} cannot be read: {error.strerror}.") from None
+    if len(raw) > limit:
+        raise UsageError(f"--{spec.name} holds more than {limit:,} bytes.")
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        raise UsageError(f"--{spec.name} must hold UTF-8 text.") from None
 
 
 def file_request(

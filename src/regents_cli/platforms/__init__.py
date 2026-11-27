@@ -37,7 +37,17 @@ def canonical_site(site: str) -> str:
 @dataclass(frozen=True, slots=True)
 class Input:
     name: str
-    type: Literal["string", "integer", "decimal", "uuid", "address", "site_url", "file", "boolean"]
+    type: Literal[
+        "string",
+        "integer",
+        "decimal",
+        "uuid",
+        "address",
+        "site_url",
+        "file",
+        "text_file",
+        "boolean",
+    ]
     location: Literal["path", "query", "body"]
     field: str
     description: str

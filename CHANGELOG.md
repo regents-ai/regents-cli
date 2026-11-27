@@ -5,6 +5,12 @@ PyPI; earlier entries describe the TypeScript package `@regentslabs/cli` on npm.
 
 ## Unreleased
 
+## 1.12.0 — 2026-11-26
+
+- Re-pinned Patchbay (`regents patchbay`) from retired `regents-ai/patchbay` onto `regents-ai/regents` (`0e131b14`) and migrated `known-fixes find/get` to JSON-only `/api/v1/patchbay/known-fixes` with updated `https://regents.sh/patchbay/skill.md` help notes.
+- Added first-class public Patchbay commands requiring no sign-in: `services list`, `services endpoints`, `validate <url>` (HTTP 402 x402 v2 / MPP + `OPTIONS` CORS preflight + prefilled forum report URL), `security criticals`, `security check-stack` (version-accurate OSV range matching with patched-pin clearing), and `playbooks list/get`.
+- Added `text_file` input support in `regents-cli` so `regents patchbay security check-stack --file <path>` (or `--file -` for stdin) reads local lockfiles (`package.json`, `package-lock.json`, `composer.lock`, `mix.lock`, `Cargo.toml`, `Cargo.lock`, `requirements.txt`, `uv.lock`, `go.mod`) up to 64 KB directly without shell substitution.
+
 ## 1.11.0 — 2026-11-24
 
 - Synced the embedded Touch ID page (`passkey.html`) with live `siwa-server` v112 (`https://regents.sh/patchbay` footer link).
