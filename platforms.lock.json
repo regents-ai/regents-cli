@@ -137,7 +137,7 @@
   },
   "techtree": {
     "repository": "regents-ai/regents",
-    "commit": "f5192e46b399f34ebb5b37606a0534ca658d1277",
+    "commit": "bd2812a5271a72be895db593e10aefc985ac8167",
     "files": {
       "cli/techtree/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
