@@ -41,9 +41,10 @@ def verify_and_inspect_archive(
     *,
     expected_sha256: str,
     expected_size: int | None = None,
+    inspect_archive: bool = True,
 ) -> dict[str, Any]:
-    """Verify exact SHA-256 + size of a downloaded archive and inspect manifest/rerun_test
-    in memory without extracting to disk."""
+    """Verify exact SHA-256 + size of a downloaded archive and optionally inspect
+    manifest/rerun_test in memory without extracting to disk."""
     actual_sha = hashlib.sha256(raw_bytes).hexdigest()
     actual_size = len(raw_bytes)
     if actual_sha != expected_sha256.lower():
@@ -58,6 +59,18 @@ def verify_and_inspect_archive(
             f"Downloaded package size {actual_size} bytes does not match expected "
             f"{expected_size} bytes. Nothing was written to disk.",
         )
+
+    if not inspect_archive:
+        return {
+            "sha256": actual_sha,
+            "sha256_verified": True,
+            "size_bytes": actual_size,
+            "file_count": None,
+            "schema": None,
+            "line": None,
+            "verdict": None,
+            "rerun_test": None,
+        }
 
     manifest: dict[str, Any] | None = None
     rerun_test: dict[str, Any] | None = None
@@ -107,7 +120,11 @@ def _download_signed_bytes(
     receipt: siwa.Receipt,
     timeout_ms: int,
 ) -> bytes:
-    request = Request("GET", path, headers={"accept": "application/gzip"})
+    request = Request(
+        "GET",
+        path,
+        headers={"accept": "application/gzip", "accept-encoding": "identity"},
+    )
     signed = replace(request, headers=siwa.sign(request, receipt, base))
     timeout = timeout_ms / 1000.0
     try:
@@ -120,9 +137,15 @@ def _download_signed_bytes(
             # SECURITY: never follow redirects on signed requests or binary downloads.
             response = session.send(req, stream=True, follow_redirects=False)
             try:
+                encoding = response.headers.get("content-encoding", "").strip().lower()
+                if response.status_code == 200 and encoding not in {"", "identity"}:
+                    raise CommandError(
+                        "unexpected_content_encoding",
+                        f"Refused package response with unexpected Content-Encoding: {encoding!r}.",
+                    )
                 chunks: list[bytes] = []
                 total = 0
-                for chunk in response.iter_bytes():
+                for chunk in response.iter_raw():
                     chunks.append(chunk)
                     total += len(chunk)
                     if total > MAX_PACKAGE_BYTES:
@@ -263,6 +286,7 @@ def project_package(
         raw_bytes,
         expected_sha256=expected_sha,
         expected_size=expected_size if isinstance(expected_size, int) else None,
+        inspect_archive=inspect_archive,
     )
 
     dest = (

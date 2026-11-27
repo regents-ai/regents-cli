@@ -18,7 +18,7 @@ from rich.console import RenderableType
 from rich.panel import Panel
 from rich.table import Table
 
-from regents_cli import output, siwa
+from regents_cli import output, runner, siwa
 from regents_cli.errors import CommandError, UsageError
 from regents_cli.http import Request, base_address, send
 from regents_cli.next_steps import Step, run
@@ -26,8 +26,9 @@ from regents_cli.platforms import DEFAULT_TIMEOUT_MS
 from regents_cli.techtree.commands.answers import BASE_URL, JSON
 from regents_cli.techtree.site import site_base
 
-#: Matches Regents' & OrderBridge's 5 MiB intake archive cap.
+#: Matches Regents' & OrderBridge's 5 MiB intake archive cap and 25 MiB unpacked cap.
 MAX_INTAKE_BYTES: Final = 5 * 1024 * 1024
+MAX_UNPACKED_INTAKE_BYTES: Final = 25 * 1024 * 1024
 _SITE: Final = "regents"
 _ORDERS_PATH: Final = "/api/v1/techtree/account/orders"
 _LANES: Final = ("skills", "evals", "environments", "models")
@@ -35,8 +36,11 @@ _MODES: Final = ("supervised", "auto")
 _GPUS: Final = ("auto", "L4", "G4", "A100", "H100")
 _TRAIN_MODES: Final = ("sft", "rl")
 _SKIP_NAMES: Final = frozenset({".DS_Store", ".git", ".venv", "__pycache__", ".netrc"})
+# Matches uplift-factory Job.Material: strip secrets & macOS metadata while keeping
+# safe .env.example / .env.sample / .env.template fixtures for :environments repos.
 _SECRET_RE: Final = re.compile(
-    r"^(\._.*|\.env(\..*|rc)?|id_(rsa|dsa|ecdsa|ed25519)|.*\.(pem|key|p12|pfx))$", re.I
+    r"^(\._.*|\.env(\.(?!example$|sample$|template$).+|rc)?|id_(rsa|dsa|ecdsa|ed25519)|.*\.(pem|key|p12|pfx))$",
+    re.I,
 )
 
 
@@ -109,15 +113,29 @@ def _validate_existing_tgz(raw: bytes) -> None:
             members = tf.getmembers()
             if not any(m.isfile() for m in members):
                 raise UsageError("Materials archive contains no files.")
+            total_unpacked = 0
             for member in members:
                 if member.issym() or member.islnk():
                     raise UsageError(
                         f"Materials archive contains a link ({member.name}), which is refused."
                     )
+                if not (member.isfile() or member.isdir()):
+                    raise UsageError(
+                        f"Materials archive contains unsupported entry ({member.name}), "
+                        "which is refused."
+                    )
                 name = member.name.rstrip("/")
                 parts = Path(name).parts
                 if name.startswith("/") or ".." in parts or "\\" in name:
                     raise UsageError(f"Materials archive contains unsafe path: {member.name}")
+                if member.isfile():
+                    total_unpacked += member.size
+                    if total_unpacked > MAX_UNPACKED_INTAKE_BYTES:
+                        raise CommandError(
+                            "materials_too_large",
+                            f"Materials archive unpacks past the 25 MiB "
+                            f"({MAX_UNPACKED_INTAKE_BYTES:,} byte) safety limit.",
+                        )
     except tarfile.TarError as exc:
         raise UsageError(f"Materials file is not a valid gzipped tar archive: {exc}") from None
 
@@ -152,6 +170,96 @@ def _render_order(order: dict[str, Any]) -> list[RenderableType]:
             title_align="left",
             border_style="cyan",
         )
+    ]
+
+
+def _signed_by_caller(base: str, req: Request, timeout_ms: int) -> Request:
+    """Verify a `--phase prepare` envelope piped back with its external SIWA signature."""
+    piped = runner.read_stdin(timeout_ms)
+    shape = (
+        '{"request": …, "signature": …} '
+        "(the request is --phase prepare's answer, less its next_steps)"
+    )
+    if not isinstance(piped, dict) or set(piped) != {"request", "signature"}:
+        raise UsageError(f"stdin must hold {shape}.")
+    given, signature = piped["request"], piped["signature"]
+    keys = {"contract", "origin", "method", "path", "body", "headers", "message"}
+    if (
+        not isinstance(given, dict)
+        or set(given) != keys
+        or not isinstance(given["headers"], dict)
+        or not isinstance(given["body"], str)
+        or not isinstance(signature, str)
+    ):
+        raise UsageError(f"stdin must hold {shape}.")
+    if given["contract"] != siwa.contract_id():
+        raise UsageError(
+            "This request was prepared under another signing contract than this regents signs "
+            "with. Prepare it again with --phase prepare and sign the new message."
+        )
+    if (given["origin"], given["method"], given["path"]) != (base, req.method, req.target):
+        raise UsageError("The prepared request is for another site, method or path.")
+    expected_bytes = req.content
+    if expected_bytes is None or given["body"].encode("utf-8") != expected_bytes:
+        raise UsageError("The prepared body does not match this command's flags and materials.")
+    headers, message = siwa.rebuild(req, given["headers"], base)
+    if message != given["message"]:
+        raise UsageError("The prepared message does not match its request.")
+    return replace(req, headers=siwa.with_signature(headers, signature))
+
+
+def _prepare_send_command(
+    *,
+    lane: str,
+    title: str,
+    success: str,
+    project_name: str | None,
+    materials: Path | None,
+    company: str | None,
+    contact_name: str | None,
+    contact_email: str | None,
+    mode: str,
+    auto_deliver: bool,
+    max_gpu_cents: int,
+    gpu: str,
+    learning_rate: float,
+    training_mode: str,
+    base_url: str | None,
+    timeout_ms: int,
+    as_json: bool,
+) -> list[str]:
+    return [
+        "regents",
+        "techtree",
+        "orders",
+        "create",
+        "--lane",
+        lane,
+        "--title",
+        title,
+        "--success",
+        success,
+        *(["--project-name", project_name] if project_name else []),
+        *(["--materials", str(materials)] if materials is not None else []),
+        *(["--company", company] if company else []),
+        *(["--contact-name", contact_name] if contact_name else []),
+        *(["--contact-email", contact_email] if contact_email else []),
+        "--mode",
+        mode,
+        "--auto-deliver" if auto_deliver else "--no-auto-deliver",
+        "--max-gpu-cents",
+        str(max_gpu_cents),
+        "--gpu",
+        gpu,
+        "--learning-rate",
+        str(learning_rate),
+        "--training-mode",
+        training_mode,
+        *(["--base-url", base_url] if base_url else []),
+        *(["--timeout-ms", str(timeout_ms)] if timeout_ms != DEFAULT_TIMEOUT_MS else []),
+        "--phase",
+        "send",
+        *(["--json"] if as_json else []),
     ]
 
 
@@ -197,11 +305,9 @@ def create_order(
     if contact_email:
         body["customer_contact_email"] = contact_email
 
-    materials_info: dict[str, Any] | None = None
     if materials is not None:
-        raw, digest, size = pack_materials(materials)
+        raw, _digest, _size = pack_materials(materials)
         body["material_archive_base64"] = base64.b64encode(raw).decode("ascii")
-        materials_info = {"sha256": digest, "size_bytes": size}
 
     base = base_address(
         base_url,
@@ -209,51 +315,42 @@ def create_order(
         site_base(None),
         fallback_env_var="REGENTS_BASE_URL",
     )
-
-    if phase == "prepare":
-        prepared = {
-            "method": "POST",
-            "url": base + _ORDERS_PATH,
-            "path": _ORDERS_PATH,
-            "audience": _SITE,
-            "body": body,
-            "materials": materials_info,
-        }
-        send_cmd = [
-            "regents",
-            "techtree",
-            "orders",
-            "create",
-            "--lane",
-            lane,
-            "--title",
-            title,
-            "--success",
-            success,
-            *(["--project-name", project_name] if project_name else []),
-            *(["--materials", str(materials)] if materials is not None else []),
-            *(["--base-url", base_url] if base_url else []),
-            "--phase",
-            "send",
-            *(["--json"] if as_json else []),
-        ]
-        output.emit(
-            prepared,
-            as_json=as_json,
-            next_steps=[
-                run(
-                    send_cmd,
-                    "Sign with your paired SIWA agent key and submit this order.",
-                )
-            ],
-            shown=None if as_json else [output.report("Prepared unsigned order request JSON.")],
-        )
-        return
+    req = Request("POST", _ORDERS_PATH, body=body)
 
     siwa.signs_for(_SITE, base, timeout_ms)
-    receipt = siwa.current(_SITE, timeout_ms)
-    req = Request("POST", _ORDERS_PATH, body=body)
-    signed = replace(req, headers=siwa.sign(req, receipt, base))
+    if phase == "send":
+        signed = _signed_by_caller(base, req, timeout_ms)
+    else:
+        receipt = siwa.current(_SITE, timeout_ms)
+        if phase == "prepare":
+            ready = runner.prepared(base, req, receipt)
+            send_cmd = _prepare_send_command(
+                lane=lane,
+                title=title,
+                success=success,
+                project_name=project_name,
+                materials=materials,
+                company=company,
+                contact_name=contact_name,
+                contact_email=contact_email,
+                mode=mode,
+                auto_deliver=auto_deliver,
+                max_gpu_cents=max_gpu_cents,
+                gpu=gpu,
+                learning_rate=learning_rate,
+                training_mode=training_mode,
+                base_url=base_url,
+                timeout_ms=timeout_ms,
+                as_json=as_json,
+            )
+            output.emit(
+                ready,
+                as_json=as_json,
+                next_steps=[runner.send_signed(ready, send_cmd)],
+            )
+            return
+        signed = replace(req, headers=siwa.sign(req, receipt, base))
+
     created = send(base, signed, max(timeout_ms, 60_000))
     if not isinstance(created, dict) or not created.get("id"):
         raise CommandError("invalid_response", "The site did not return the created order.")
@@ -355,7 +452,11 @@ ORDERS.add_command(
                 ["--phase"],
                 type=click.Choice(["prepare", "send"]),
                 default=None,
-                help="Use --phase prepare to print the unsigned JSON request without sending.",
+                help=(
+                    "For an external SIWA signer: --phase prepare prints the request and message "
+                    'to personal_sign; --phase send reads {"request": ..., "signature": ...} '
+                    "from stdin and sends it."
+                ),
             ),
             BASE_URL,
             click.Option(
