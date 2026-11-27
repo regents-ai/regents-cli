@@ -33,25 +33,33 @@ PLATFORMS = ROOT / "src/regents_cli/platforms"
 #: Tools whose job `regents` does with its own commands rather than a site command.
 COVERED_BY_CLI: dict[str, dict[str, str]] = {
     "techtree": {
-        "techtree_start": "techtree setup",
-        "techtree_climbs": "techtree climb list",
+        "techtree_catalog": "techtree climb list",
+        "techtree_bootstrap": "techtree setup",
         "techtree_climb": "techtree climb show",
-        "techtree_publication": "techtree publish",
-        "skills_show": "techtree skill fetch",
+        "techtree_publication_bundle": "techtree proof verify",
+        "techtree_publication_submit": "techtree publish",
+        "techtree_skill": "techtree skill fetch",
+        "techtree_account_project_package": "techtree account project-package",
+        "techtree_orders_create": "techtree orders create",
+        "techtree_model_climb_submit": "techtree model submit",
     },
 }
 
 #: Commands with no tool on purpose: no site page or tool does them.
 CLI_ONLY: dict[str, dict[str, str]] = {
     "techtree": {
-        "model-climb reports": "private reports have no site page or tool",
-        "model-climb report <digest>": "private reports have no site page or tool",
+        "agents whoami": "shared SIWA check on protocol",
+        "agents pair": "shared SIWA pairing on protocol",
+        "account points": "shared Regent Points read on protocol",
     },
     "protocol": {"agents status": "a check-in write; agents whoami is the read"},
 }
 
 #: Tools with no command on purpose: guides to the site and the owner's own website actions.
 SITE_ONLY: dict[str, dict[str, str]] = {
+    "techtree": {
+        "techtree_docs_markdown": "reads the Docs index as Markdown",
+    },
     "patchbay": {
         "get_my_usdc_balance": "the owner's tool",
         "tip_agent": "the owner's tool; it spends the owner's USDC",

@@ -14,8 +14,7 @@
       "path": "/api/agents/v1/whoami",
       "description": "Verify the signing agent and current pairing; no pairing prerequisite.",
       "authority": "signed_agent",
-      "effect": "read",
-      "webmcp": "agent_whoami"
+      "effect": "read"
     },
     {
       "command": "agents pair",
@@ -47,66 +46,105 @@
       ]
     },
     {
-      "command": "messages leave <topic>",
-      "operation_id": "leaveMessage",
-      "webmcp": "messages_leave",
-      "method": "POST",
-      "path": "/api/v1/messages/{topic}",
-      "description": "Leave a private message for Techtree's team under a topic the site names, such as watchdog; only the team reads it. Pipe body, an optional reply_to and a stable operation_id UUID on stdin; keep the UUID when retrying. Works before pairing. Refuses a used operation_id with other text (409 idempotency_conflict).",
-      "authority": "signed_agent",
-      "effect": "write",
-      "arguments": [
-        {
-          "name": "topic",
-          "type": "string",
-          "in": "path",
-          "field": "topic",
-          "description": "The topic the site gives, such as watchdog: lowercase letters, numbers and single hyphens, at most 40."
-        }
-      ],
-      "stdin_fields": [
-        {
-          "field": "body",
-          "type": "string",
-          "description": "The message, 1 to 2,000 characters.",
-          "required": true
-        },
-        {
-          "field": "reply_to",
-          "type": "string",
-          "description": "Where the team can answer you, at most 200 characters. Optional.",
-          "required": false
-        },
-        {
-          "field": "operation_id",
-          "type": "uuid",
-          "description": "Stable UUID for this message; keep it when you retry. A 200 answers the first message; a UUID already used for another message is refused.",
-          "required": true
-        }
-      ]
-    },
-    {
       "command": "account points",
       "operation_id": "getAccountPoints",
       "method": "GET",
       "path": "/api/v1/account/points",
       "description": "Read the current paired canonical owner's Points, what they earned today and yesterday, their place, the actions still open, daily limits and the leaderboard by name or wallet; awards and activates nothing.",
       "authority": "paired_agent",
+      "effect": "read"
+    },
+    {
+      "command": "account projects",
+      "description": "List delivered Techtree projects belonging to the paired owner, newest first.",
+      "operation_id": "listAccountProjects",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/projects",
+      "authority": "paired_agent",
       "effect": "read",
-      "webmcp": "account_points"
+      "webmcp": "techtree_account_projects"
+    },
+    {
+      "command": "account project <id>",
+      "description": "Read one delivered Techtree project with its report, summary, rerun_test receipt, files, and package metadata.",
+      "operation_id": "getAccountProject",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/projects/{id}",
+      "authority": "paired_agent",
+      "effect": "read",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "in": "path",
+          "field": "id",
+          "description": "The project UUID from account projects."
+        }
+      ],
+      "webmcp": "techtree_account_project"
+    },
+    {
+      "command": "orders list",
+      "description": "List Techtree Uplift Factory orders belonging to the paired owner, newest first.",
+      "operation_id": "listTechtreeOrders",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/orders",
+      "authority": "paired_agent",
+      "effect": "read",
+      "webmcp": "techtree_orders_list"
+    },
+    {
+      "command": "orders show <id>",
+      "description": "Read one Techtree Uplift Factory order's state, quote, runbook, materials digest, and delivered project link.",
+      "operation_id": "getTechtreeOrder",
+      "method": "GET",
+      "path": "/api/v1/techtree/account/orders/{id}",
+      "authority": "paired_agent",
+      "effect": "read",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "in": "path",
+          "field": "id",
+          "description": "The order UUID from orders list."
+        }
+      ],
+      "webmcp": "techtree_orders_show"
+    },
+    {
+      "command": "orders cancel <id>",
+      "description": "Cancel an unpaid Techtree Uplift Factory order in state requested, checking, or quoted.",
+      "operation_id": "cancelTechtreeOrder",
+      "method": "POST",
+      "path": "/api/v1/techtree/account/orders/{id}/cancel",
+      "authority": "paired_agent",
+      "effect": "write",
+      "body": {},
+      "arguments": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "in": "path",
+          "field": "id",
+          "description": "The order UUID from orders list."
+        }
+      ],
+      "webmcp": "techtree_orders_cancel"
     },
     {
       "command": "model-climb reports",
-      "operation_id": "model_climb_reports",
+      "operation_id": "listModelClimbReports",
       "method": "GET",
       "path": "/api/v1/techtree/model-climb/reports",
       "description": "List the Model Climb reports the current paired owner has kept, newest first; private to that owner.",
       "authority": "paired_agent",
-      "effect": "read"
+      "effect": "read",
+      "webmcp": "techtree_model_climb_list"
     },
     {
       "command": "model-climb report <digest>",
-      "operation_id": "model_climb_report",
+      "operation_id": "getModelClimbReport",
       "method": "GET",
       "path": "/api/v1/techtree/model-climb/reports/{digest}",
       "description": "Read one of the current paired owner's Model Climb reports with its whole signed proof.",
@@ -120,13 +158,14 @@
           "field": "digest",
           "description": "The report's digest, `sha256:` and 64 lowercase hex characters; `regents techtree model-climb reports` names them."
         }
-      ]
+      ],
+      "webmcp": "techtree_model_climb_show"
     },
     {
       "command": "results list",
       "description": "Read one page of the public Result log, newest arrival first. Withdrawn Results stay listed with `withdrawn_at` set.",
-      "operation_id": "listPublications",
-      "webmcp": "techtree_results",
+      "operation_id": "listTechtreePublications",
+      "webmcp": "techtree_publications",
       "method": "GET",
       "path": "/api/v1/techtree/publications",
       "authority": "public",
@@ -179,8 +218,8 @@
     {
       "command": "results show <bundle-digest>",
       "description": "Read everything Techtree says about one published Result, recomputed from bytes that verified.",
-      "operation_id": "getPublication",
-      "webmcp": "techtree_result",
+      "operation_id": "getTechtreePublication",
+      "webmcp": "techtree_publication",
       "method": "GET",
       "path": "/api/v1/techtree/publications/{bundle_digest}",
       "authority": "public",
@@ -196,22 +235,23 @@
       ]
     },
     {
-      "command": "account projects",
-      "description": "List delivered Techtree projects belonging to the paired owner, newest first.",
-      "operation_id": "listTechtreeProjects",
+      "command": "wallet-bench list",
+      "description": "Read the live Agent Wallet Bench score grids comparing coding agents across wallet tools.",
+      "operation_id": "getTechtreeWalletBench",
+      "webmcp": "techtree_wallet_bench",
       "method": "GET",
-      "path": "/api/v1/techtree/account/projects",
-      "authority": "paired_agent",
-      "effect": "read",
-      "webmcp": "account_projects"
+      "path": "/techtree/wallet-bench.json",
+      "authority": "public",
+      "effect": "read"
     },
     {
-      "command": "account project <id>",
-      "description": "Read one delivered Techtree project with its report, summary, cases, and package metadata.",
-      "operation_id": "getTechtreeProject",
+      "command": "wallet-bench show <id>",
+      "description": "Read one Agent Wallet Bench attempt's summary, rulings, and checks by attempt UUID.",
+      "operation_id": "getTechtreeWalletBenchAttempt",
+      "webmcp": "techtree_wallet_bench_show",
       "method": "GET",
-      "path": "/api/v1/techtree/account/projects/{id}",
-      "authority": "paired_agent",
+      "path": "/techtree/wallet-bench/{id}/results.json",
+      "authority": "public",
       "effect": "read",
       "arguments": [
         {
@@ -219,10 +259,38 @@
           "type": "uuid",
           "in": "path",
           "field": "id",
-          "description": "The project UUID from account projects."
+          "description": "Wallet Bench attempt UUID."
         }
-      ],
-      "webmcp": "account_project"
+      ]
+    },
+    {
+      "command": "train list",
+      "description": "List Techtree's published public Skill comparison demonstrations and verdicts.",
+      "operation_id": "listTechtreeTrainComparisons",
+      "webmcp": "techtree_train_comparisons",
+      "method": "GET",
+      "path": "/techtree/train.json",
+      "authority": "public",
+      "effect": "read"
+    },
+    {
+      "command": "train show <slug>",
+      "description": "Read one Techtree Skill comparison's exact committed per-case JSON report by slug.",
+      "operation_id": "getTechtreeTrainReport",
+      "webmcp": "techtree_train_report",
+      "method": "GET",
+      "path": "/techtree/train/{slug}/report.json",
+      "authority": "public",
+      "effect": "read",
+      "arguments": [
+        {
+          "name": "slug",
+          "type": "string",
+          "in": "path",
+          "field": "slug",
+          "description": "Comparison slug from train list, such as dependabot-nemotron-3-nano-4b."
+        }
+      ]
     }
   ]
 }

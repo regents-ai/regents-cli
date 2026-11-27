@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import click
 
+from regents_cli.techtree.commands.account import ACCOUNT
 from regents_cli.techtree.commands.climb import CLIMB
 from regents_cli.techtree.commands.doctor import DOCTOR
 from regents_cli.techtree.commands.engine import ENGINE
 from regents_cli.techtree.commands.forge import FORGE
 from regents_cli.techtree.commands.internal import SUPERVISE, WORKER
 from regents_cli.techtree.commands.model import MODEL
+from regents_cli.techtree.commands.orders import ORDERS
 from regents_cli.techtree.commands.proof import PROOF
 from regents_cli.techtree.commands.publish import PUBLISH
 from regents_cli.techtree.commands.release import RELEASE
@@ -41,6 +43,8 @@ def techtree_group() -> click.Group:
         PUBLISH,
         WITHDRAW,
         RELEASE,
+        ACCOUNT,
+        ORDERS,
         WORKER,
         SUPERVISE,
     ):
