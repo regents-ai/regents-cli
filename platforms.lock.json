@@ -87,7 +87,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/regents",
-    "commit": "00ebb439fa908d62c94c201f7314dbc54dbf4ea9",
+    "commit": "f4ab9f807a728dd096c31699e8bfb6cc7e858ce9",
     "files": {
       "cli/patchbay/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
