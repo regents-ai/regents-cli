@@ -121,6 +121,13 @@ RUNS: dict[str, list[Run]] = {
     "patchbay": [
         Run("health"),
         Run("sites list"),
+        Run("services list"),
+        Run("services endpoints"),
+        Run("validate <url>", {"url": "https://regents.sh/patchbay/bench/mpp-test"}),
+        Run("security criticals"),
+        Run("security check-stack --manifest <manifest>", {"manifest": "drupal/core@11.4.13"}),
+        Run("playbooks list"),
+        Run("playbooks get <slug>", {"slug": ("playbooks list", "playbooks.0.slug")}),
         Run("bench matrix"),
         Run(THREADS),
         Run("threads search --source-kind advisory"),
@@ -146,6 +153,12 @@ RUNS: dict[str, list[Run]] = {
                 "harness-id": ("bench matrix", "squares.0.harness_id"),
                 "wallet-id": ("bench matrix", "squares.0.wallet_id"),
             },
+        ),
+        Run("offers list", refuses=("not_found", 404)),
+        Run(
+            "offers campaign <campaign-id>",
+            {"campaign-id": "0x0000000000000000000000000000000000000000000000000000000000000000"},
+            refuses=("not_found", 404),
         ),
     ],
     "protocol": [
