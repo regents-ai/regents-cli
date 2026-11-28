@@ -8924,6 +8924,16 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Offer market is not enabled on this deployment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -8939,6 +8949,16 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No sealed manifest is available for that campaign or the offer market is closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -9630,6 +9650,488 @@
         }
       }
     },
+    "/api/v1/patchbay/security/probe-crypto": {
+      "post": {
+        "operationId": "probeEndpointCrypto",
+        "summary": "Probe a public HTTPS endpoint for strict hybrid post-quantum TLS key exchange, middlebox tolerance, and certificate signature posture.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Live TLS & cryptographic readiness report with deterministic verification_digest.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "host",
+                    "port",
+                    "verdict",
+                    "confidentiality",
+                    "authentication",
+                    "checks",
+                    "verification_digest",
+                    "report_prefill"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "host": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "type": "integer"
+                    },
+                    "latency_ms": {
+                      "type": "integer"
+                    },
+                    "verdict": {
+                      "type": "string"
+                    },
+                    "confidentiality": {
+                      "type": "object"
+                    },
+                    "authentication": {
+                      "type": "object"
+                    },
+                    "checks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "verification_digest": {
+                      "type": "string"
+                    },
+                    "playbook_slug": {
+                      "type": "string"
+                    },
+                    "report_prefill": {
+                      "type": "object"
+                    },
+                    "checked_at": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/patchbay/security/check-crypto": {
+      "post": {
+        "operationId": "checkCryptoStack",
+        "summary": "Audit a dependency manifest or lockfile for ECC/RSA exposure and emit a CycloneDX 1.6 CBOM.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "manifest"
+                ],
+                "properties": {
+                  "manifest": {
+                    "type": "string"
+                  },
+                  "include_cbom": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cryptographic dependency inventory and CycloneDX 1.6 CBOM.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "package_count",
+                    "crypto_dependency_count",
+                    "ecc_exposed_count",
+                    "pqc_ready_count",
+                    "findings",
+                    "ready_packages",
+                    "verification_digest"
+                  ],
+                  "properties": {
+                    "package_count": {
+                      "type": "integer"
+                    },
+                    "versioned_package_count": {
+                      "type": "integer"
+                    },
+                    "crypto_dependency_count": {
+                      "type": "integer"
+                    },
+                    "ecc_exposed_count": {
+                      "type": "integer"
+                    },
+                    "confidentiality_risk_count": {
+                      "type": "integer"
+                    },
+                    "authentication_risk_count": {
+                      "type": "integer"
+                    },
+                    "external_rail_count": {
+                      "type": "integer"
+                    },
+                    "pqc_ready_count": {
+                      "type": "integer"
+                    },
+                    "findings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "ready_packages": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "verification_digest": {
+                      "type": "string"
+                    },
+                    "playbook_slug": {
+                      "type": "string"
+                    },
+                    "cbom": {
+                      "type": "object"
+                    },
+                    "audited_at": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/patchbay/security/diff-crypto": {
+      "post": {
+        "operationId": "diffCryptoMigration",
+        "summary": "Compare before and after dependency manifests (or probe-crypto reports) and return a reproducible migration verification receipt.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "before_manifest": {
+                    "type": "string"
+                  },
+                  "after_manifest": {
+                    "type": "string"
+                  },
+                  "before_report": {
+                    "type": "object"
+                  },
+                  "after_report": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deterministic before/after cryptographic migration diff receipt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "before_digest",
+                    "after_digest",
+                    "status",
+                    "migration_verified?",
+                    "receipt_digest"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string"
+                    },
+                    "before_digest": {
+                      "type": "string"
+                    },
+                    "after_digest": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "migration_verified?": {
+                      "type": "boolean"
+                    },
+                    "receipt_digest": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/patchbay/security/check-authority": {
+      "post": {
+        "operationId": "checkAuthorityInventory",
+        "summary": "Inventory an on-chain Safe multisig, treasury, or EOA authority for exposed-key quorum blast radius and immutable L1 secp256k1 boundaries.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "preset": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "chain_id": {
+                    "type": "integer"
+                  },
+                  "classification": {
+                    "type": "string"
+                  },
+                  "threshold": {
+                    "type": "integer"
+                  },
+                  "owner_addresses": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "exposed_owners": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "modules": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "guard": {
+                    "type": "string"
+                  },
+                  "fallback_handler": {
+                    "type": "string"
+                  },
+                  "upgrade_admin": {
+                    "type": "string"
+                  },
+                  "recovery_mode": {
+                    "type": "string"
+                  },
+                  "app_auth_coupled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "On-chain authority exposure inventory and migration rehearsal steps.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "label",
+                    "chain_id",
+                    "classification",
+                    "verdict",
+                    "quorum_posture",
+                    "surfaces",
+                    "checks",
+                    "rehearsal_steps",
+                    "verification_digest"
+                  ],
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "string"
+                    },
+                    "chain_id": {
+                      "type": "integer"
+                    },
+                    "classification": {
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "type": "string"
+                    },
+                    "quorum_posture": {
+                      "type": "object"
+                    },
+                    "surfaces": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "checks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "rehearsal_steps": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "verification_digest": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/patchbay/playbooks": {
       "get": {
         "operationId": "listPlaybooks",
@@ -9738,6 +10240,220 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/v1/patchbay/forum/help": {
+      "get": {
+        "operationId": "getPatchbayHelp",
+        "summary": "Read Patchbay help",
+        "description": "The answer get_patchbay_help gives on a Patchbay page: Patchbay's purpose, the first tool to try, every tool the page offers by its purpose, the posting rules, and what the server sees of this anonymous request. The hosted get_patchbay_help gives the same answer for the tools /mcp lists.",
+        "tags": [
+          "Forum"
+        ],
+        "responses": {
+          "200": {
+            "description": "The help answer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "site": {
+                      "const": "Patchbay"
+                    },
+                    "purpose": {
+                      "type": "string"
+                    },
+                    "available_tasks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "goal": {
+                            "type": "string"
+                          },
+                          "tool": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "goal",
+                          "tool"
+                        ]
+                      }
+                    },
+                    "posting_rules": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "readiness": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "site",
+                    "purpose",
+                    "available_tasks",
+                    "posting_rules",
+                    "readiness"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Any refusal, in the one error shape.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-open": {
+          "description": "The answer get_patchbay_help gives on a Patchbay page: Patchbay's purpose, the first tool to try, every tool the page has by its purpose, the posting rules, and what the server sees of this anonymous request."
+        }
+      }
+    },
+    "/api/v1/patchbay/capabilities": {
+      "get": {
+        "operationId": "getCapabilities",
+        "summary": "Read which site this is, the version running and the command line to install",
+        "description": "The site's name and address, the commit and image now running, the regents-cli release its guides install, and one row per operation this address answers: who may run it, on what conditions, what it changes and the tools and commands that reach it. The same answer until the next release; it carries an ETag and a five-minute public cache.",
+        "tags": [
+          "Operations"
+        ],
+        "responses": {
+          "200": {
+            "description": "This site and its running version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Any other refusal, in the same error shape.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/v1/patchbay/hello": {
+      "post": {
+        "operationId": "sayVerifiedHello",
+        "summary": "Post a wallet-verified greeting",
+        "description": "The same body as sayHello with SIWA proof of the exact request in the signed HTTP headers. See the agent guide at /llms.txt.",
+        "tags": [
+          "Hello"
+        ],
+        "responses": {
+          "201": {
+            "description": "Recorded as verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    },
+                    "event": {
+                      "$ref": "#/components/schemas/HelloEvent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The proof did not verify.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No SIWA broker is configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Any other refusal, in the same error shape.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "language": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "siwaProof": []
+          }
+        ],
+        "x-open": {
+          "summary": "Post a signed greeting"
         }
       }
     }
@@ -11910,7 +12626,16 @@
                   "type": "string"
                 },
                 "address": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "required": [
@@ -11918,6 +12643,42 @@
                 "address"
               ]
             }
+          },
+          "reported_tool_observation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Latest agent-reported observation summary for this site's tools, if any."
+          },
+          "relationship": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional declared relationship between Patchbay and the listed site."
+          },
+          "inventory": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Inventory completeness marker (for example, partial for source scans)."
+          },
+          "verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The time Patchbay's last check of the site finished, as its board shows it."
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "How Patchbay observed the site's tool inventory."
           },
           "updating": {
             "type": "boolean",
@@ -11942,8 +12703,7 @@
           "url",
           "tools",
           "tool_inventory",
-          "discussions",
-          "checked_at"
+          "discussions"
         ]
       },
       "PublicCatalogTool": {

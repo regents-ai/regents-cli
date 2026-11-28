@@ -100,11 +100,12 @@ Without them, either command stops with `installation_incomplete` and the line t
 In Claude Code, for example:
 
 ```bash
-claude mcp add keyfleet-pages -- regents browser --site keyfleet
-claude mcp add keyfleet -- regents mcp --site keyfleet
+claude mcp add regents-pages -- regents browser
+claude mcp add regents -- regents mcp
 ```
 
-`--base-url` points either one at a site running on this machine.
+`--site <site>` selects another site (or product alias), and `--base-url` points either one at a
+site running on this machine.
 
 ## Live feed
 
@@ -332,10 +333,11 @@ make check
 ```
 
 `make check` runs the formatter, the linter and the type checker, checks the pinned site copies
-against the lock and every command description against its format, checks the shipped
-ReleaseCore, and builds the wheel to check it carries every pinned and resource file. Before a
-release, `make release-check` also installs the wheel into a new environment, runs every public
-read against the live sites, checking each answer against the site's pinned API description,
-and fails when the Touch ID page differs from the live sign-in server's.
+against the lock, every command description against its format, and strict 3-way parity across CLI
+commands, WebMCP tool manifests, and Hosted `/mcp`, checks the shipped ReleaseCore, and builds the
+wheel to check it carries every pinned and resource file. Before a release, `make release-check`
+also installs the wheel into a new environment, runs every public read against the live sites,
+checking each answer against the site's pinned API description, and fails when the Touch ID page
+differs from the live sign-in server's.
 
 MIT licensed.

@@ -65,6 +65,7 @@ class Run:
     line: str
     inputs: dict[str, tuple[str, str] | str] = field(default_factory=dict)
     refuses: tuple[str, int] | None = None
+    fallback: Run | None = None
 
 
 THREADS = "threads search --sort recent"
@@ -79,8 +80,21 @@ RUNS: dict[str, list[Run]] = {
         Run(
             "rooms message <room> <id>",
             {"room": "general", "id": ("rooms messages <room>", "messages.0.id")},
+            fallback=Run(
+                "rooms message <room> <id>",
+                {"room": "general", "id": "00000000-0000-0000-0000-000000000000"},
+                refuses=("public_message_not_found", 404),
+            ),
         ),
-        Run("agents get <id>", {"id": ("rooms messages <room>", "messages.0.agent_id")}),
+        Run(
+            "agents get <id>",
+            {"id": ("rooms messages <room>", "messages.0.agent_id")},
+            fallback=Run(
+                "agents get <id>",
+                {"id": "00000000-0000-0000-0000-000000000000"},
+                refuses=("agent_not_found", 404),
+            ),
+        ),
         Run("about"),
         Run("docs"),
         Run("siwa help"),
@@ -111,21 +125,42 @@ RUNS: dict[str, list[Run]] = {
         Run("earn list"),
     ],
     "keyfleet": [
+        Run("about"),
+        Run("docs"),
         Run("fleets list"),
         Run("fleets get <fleet>", {"fleet": ("fleets list", "fleets.0.id")}),
         # The one fleet with Keys sold; a fleet still to come has no treasury, pulse or proposals.
         Run("treasury get <fleet>", {"fleet": "regents_club"}),
         Run("workspace pulse <fleet>", {"fleet": "regents_club"}),
         Run("proposals list <fleet>", {"fleet": "regents_club"}),
+        Run("fleets seasons <fleet>", {"fleet": "regents_club"}),
+        Run(
+            "fleets season <fleet> <number>",
+            {"fleet": "regents_club", "number": ("fleets seasons <fleet>", "seasons.0.number")},
+            fallback=Run(
+                "fleets season <fleet> <number>",
+                {"fleet": "regents_club", "number": "999999"},
+                refuses=("season_unknown", 404),
+            ),
+        ),
     ],
     "patchbay": [
         Run("health"),
+        Run("help"),
+        Run("capabilities"),
         Run("sites list"),
         Run("services list"),
         Run("services endpoints"),
         Run("validate <url>", {"url": "https://regents.sh/patchbay/bench/mpp-test"}),
         Run("security criticals"),
         Run("security check-stack --manifest <manifest>", {"manifest": "drupal/core@11.4.13"}),
+        Run("security probe-crypto <url>", {"url": "https://regents.sh"}),
+        Run("security check-crypto --manifest <manifest>", {"manifest": "openssl@3.0.0"}),
+        Run(
+            "security diff-crypto --before-manifest <before> --after-manifest <after>",
+            {"before": "openssl@3.0.0", "after": "openssl@3.5.0"},
+        ),
+        Run("security check-authority --preset <preset>", {"preset": "autolaunch_safe"}),
         Run("playbooks list"),
         Run("playbooks get <slug>", {"slug": ("playbooks list", "playbooks.0.slug")}),
         Run("bench matrix"),
@@ -162,6 +197,11 @@ RUNS: dict[str, list[Run]] = {
         ),
     ],
     "protocol": [
+        Run("health"),
+        Run("docs"),
+        Run("pages show <page>", {"page": "about"}),
+        Run("site-tools list"),
+        Run("site-tools show <site>", {"site": "patchbay"}),
         Run("products list"),
         Run("products get <product>", {"product": ("products list", "products.0.slug")}),
         Run("articles list"),
@@ -177,10 +217,35 @@ RUNS: dict[str, list[Run]] = {
         ),
     ],
     "techtree": [
+        Run("catalog"),
+        Run("bootstrap"),
         Run("results list"),
         Run(
             "results show <bundle-digest>",
             {"bundle-digest": ("results list", "entries.0.bundle_digest")},
+        ),
+        Run(
+            "results bundle <bundle-digest>",
+            {"bundle-digest": ("results list", "entries.0.bundle_digest")},
+        ),
+        Run(
+            "skills show <root-digest>",
+            {"root-digest": ("results list", "entries.0.skill_digest")},
+            fallback=Run(
+                "skills show <root-digest>",
+                {
+                    "root-digest": "sha256:" + "0" * 64,
+                },
+                refuses=("skill_not_found", 404),
+            ),
+        ),
+        Run("train list"),
+        Run("train show <slug>", {"slug": ("train list", "comparisons.0.slug")}),
+        Run("wallet-bench list"),
+        Run(
+            "wallet-bench show <id>",
+            {"id": "00000000-0000-0000-0000-000000000000"},
+            refuses=("wallet_test_not_found", 404),
         ),
     ],
 }
@@ -393,12 +458,16 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]
             failures += 1
             continue
         covered.add(name)
-        words = words_for(run, ran)
+        active = run
+        words = words_for(active, ran)
+        if words is None and run.fallback is not None:
+            active = run.fallback
+            words = words_for(active, ran)
         if words is None:
             table.add_row(run.line, "[red]✗ an earlier answer had no value to read with[/red]", "")
             failures += 1
             continue
-        expected = exit_code_for(run.refuses[1]) if run.refuses else 0
+        expected = exit_code_for(active.refuses[1]) if active.refuses else 0
         readable = regents(venv, home, [site, *words])
         machine = regents(venv, home, [site, *words, "--json"])
         try:
@@ -411,18 +480,18 @@ def check_site(site: str, venv: Path, home: Path) -> tuple[Table, int, list[str]
             for how, done in (("readable", readable), ("--json", machine))
             if done.returncode != expected
         ]
-        if not (readable.stderr if run.refuses else readable.stdout).strip():
+        if not (readable.stderr if active.refuses else readable.stdout).strip():
             exits.append("the readable answer printed nothing")
         route = shapes.get((commands[name]["method"], commands[name]["path"]), {})
-        found = exits + problems_with(run, route, told)
+        found = exits + problems_with(active, route, told)
         shown = " ".join(words)
         if found:
             failures += 1
             table.add_row(shown, "[red]✗[/red] " + escape("; ".join(found)), "")
-        elif run.refuses:
+        elif active.refuses:
             table.add_row(
                 shown,
-                f"[green]✓[/green] refused {run.refuses[0]} ({run.refuses[1]}), as expected",
+                f"[green]✓[/green] refused {active.refuses[0]} ({active.refuses[1]}), as expected",
                 "[green]✓[/green] refusal as pinned; no live record has an answer to read",
             )
         elif all(validator.is_valid({}) for validator in route["success"]):

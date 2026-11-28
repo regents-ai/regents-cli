@@ -127,7 +127,7 @@ def site_checks(
     if include_shared:
         checks.append(check("site answers", lambda: site_answers(base, timeout_ms)))
     checks += [
-        check(" ".join(c.words), partial(read_answers, base, c, timeout_ms))
+        check(" ".join(c.words), partial(read_answers, platform.name, base, c, timeout_ms))
         for c in platform.commands
         if needs_nothing(c)
     ]
@@ -249,8 +249,23 @@ def site_answers(base: str, timeout_ms: int) -> tuple[str, str]:
     return "answered", f"{base} answered {response.status_code}."
 
 
-def read_answers(base: str, command: Command, timeout_ms: int) -> tuple[str, str]:
-    send(base, Request(command.method, command.path), timeout_ms)
+#: Public reads behind an optional site feature gate where 404 `not_found` means turned off.
+GATED_PUBLIC_READS: frozenset[tuple[str, str]] = frozenset({("patchbay", "offers list")})
+
+
+def read_answers(
+    platform_name: str, base: str, command: Command, timeout_ms: int
+) -> tuple[str, str]:
+    try:
+        send(base, Request(command.method, command.path), timeout_ms)
+    except CommandError as error:
+        if (
+            (platform_name, " ".join(command.words)) in GATED_PUBLIC_READS
+            and error.code == "not_found"
+            and error.fields.get("status") == 404
+        ):
+            return "not_enabled", f"{command.method} {command.path} is currently turned off."
+        raise
     return "answered", f"{command.method} {command.path} answered."
 
 

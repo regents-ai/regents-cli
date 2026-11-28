@@ -9,6 +9,7 @@ check:
 	uv run mypy
 	uv run scripts/sync_platforms.py --copies
 	uv run python -m regents_cli.check_commands
+	uv run scripts/webmcp_parity.py
 	# The ReleaseCore names the engines this build ships: an engine lock changed without
 	# rebuilding the catalog and the ReleaseCore fails here.
 	uv run scripts/techtree/verify_release_core.py
@@ -18,8 +19,8 @@ check:
 # platform copy matches its pinned commit in the site's checkout beside this one. Some sites'
 # repositories are private, so the publish workflow checks the copies against the lock only.
 # Then the wheel, installed into a new environment, runs every public read against the live
-# sites and each answer must have its pinned shape; nothing signed runs. Last, the WebMCP report
-# lists each site's tools and commands that have no partner; it never fails.
+# sites and each answer must have its pinned shape; nothing signed runs. Last, the WebMCP/MCP
+# parity gate verifies strict 3-way parity across CLI commands, WebMCP tools, and Hosted /mcp.
 release-check: check
 	uv run scripts/sync_platforms.py --check
 	uv run scripts/check_live.py

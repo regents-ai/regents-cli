@@ -88,13 +88,40 @@ class RefusalError(Exception):
         return refusal
 
 
+def _normalize_tool(tool: dict[str, Any]) -> dict[str, Any]:
+    """Ensure split manifest tools have canonical `route` and `availability` fields."""
+    if "route" not in tool:
+        req = tool.get("request") or tool.get("http")
+        if (
+            isinstance(req, dict)
+            and isinstance(req.get("method"), str)
+            and isinstance(req.get("path"), str)
+        ):
+            tool = {**tool, "route": f"{req['method'].upper()} {req['path']}"}
+    if tool.get("authentication") == "siwa_per_request" and "availability" not in tool:
+        tool = {**tool, "availability": "available"}
+    return tool
+
+
 def tool_manifest(platform: Platform) -> dict[str, Any]:
     """The site's pinned WebMCP tool manifests, shipped beside its command description."""
     folder = files("regents_cli.platforms") / platform.name
     manifest: dict[str, Any] = json.loads(folder.joinpath("tool_manifest.json").read_text("utf-8"))
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for tool in manifest.get("tools", []):
+        normalized = _normalize_tool(tool)
+        if normalized["name"] not in seen:
+            merged.append(normalized)
+            seen.add(normalized["name"])
     for fragment in sorted(folder.iterdir(), key=lambda path: path.name):
         if fragment.name.endswith("_tools.json") and fragment.is_file():
-            manifest["tools"].extend(json.loads(fragment.read_text("utf-8"))["tools"])
+            for tool in json.loads(fragment.read_text("utf-8")).get("tools", []):
+                normalized = _normalize_tool(tool)
+                if normalized["name"] not in seen:
+                    merged.append(normalized)
+                    seen.add(normalized["name"])
+    manifest["tools"] = merged
     return manifest
 
 

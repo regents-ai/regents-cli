@@ -7,7 +7,7 @@
     "contact": {
       "name": "Regents Labs",
       "email": "build@regents.sh",
-      "url": "https://regents.sh/about#contact"
+      "url": "https://regents.sh/contact"
     },
     "license": {
       "name": "Regents Labs Terms of Use",
@@ -17,6 +17,284 @@
   },
   "security": [],
   "paths": {
+    "/api/v1/autolaunch/capabilities": {
+      "get": {
+        "operationId": "autolaunchCapabilities",
+        "summary": "Read Autolaunch tool capabilities",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Product tool manifest and deployed build",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "product",
+                    "audience",
+                    "tools"
+                  ],
+                  "properties": {
+                    "product": {
+                      "type": "string"
+                    },
+                    "audience": {
+                      "type": "string"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "build": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The supplied entity tag matches the current manifest"
+          },
+          "404": {
+            "description": "The product manifest is unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/keyfleet/capabilities": {
+      "get": {
+        "operationId": "keyfleetCapabilities",
+        "summary": "Read Keyfleet tool capabilities",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Product tool manifest and deployed build",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "product",
+                    "audience",
+                    "tools"
+                  ],
+                  "properties": {
+                    "product": {
+                      "type": "string"
+                    },
+                    "audience": {
+                      "type": "string"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "build": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The supplied entity tag matches the current manifest"
+          },
+          "404": {
+            "description": "The product manifest is unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/patchbay/capabilities": {
+      "get": {
+        "operationId": "patchbayCapabilities",
+        "summary": "Read Patchbay tool capabilities",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Product tool manifest and deployed build",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "product",
+                    "audience",
+                    "tools"
+                  ],
+                  "properties": {
+                    "product": {
+                      "type": "string"
+                    },
+                    "audience": {
+                      "type": "string"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "build": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The supplied entity tag matches the current manifest"
+          },
+          "404": {
+            "description": "The product manifest is unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/techtree/capabilities": {
+      "get": {
+        "operationId": "techtreeCapabilities",
+        "summary": "Read Techtree tool capabilities",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Product tool manifest and deployed build",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "product",
+                    "audience",
+                    "tools"
+                  ],
+                  "properties": {
+                    "product": {
+                      "type": "string"
+                    },
+                    "audience": {
+                      "type": "string"
+                    },
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "build": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The supplied entity tag matches the current manifest"
+          },
+          "404": {
+            "description": "The product manifest is unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/pages/{page}": {
+      "get": {
+        "operationId": "getPublicPage",
+        "summary": "Read a public Regents page as Markdown",
+        "description": "Returns any public regents.sh documentation or information page (about, contact, docs, docs-*, start, privacy, terms) as JSON with its Markdown text.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "description": "Page slug: about, contact, docs, docs-cloak, docs-cloak-reference, docs-cloak-install, docs-cloak-wallets, docs-siwa, docs-mcp, docs-cli, docs-limits, docs-errors, docs-products, docs-reading, docs-profiles, docs-pairing, docs-agent-reads, docs-webmcp, docs-claims, docs-staking, docs-contracts, docs-changes, start, privacy, or terms.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "about",
+                "contact",
+                "docs",
+                "docs-cloak",
+                "docs-cloak-reference",
+                "docs-cloak-install",
+                "docs-cloak-wallets",
+                "docs-siwa",
+                "docs-mcp",
+                "docs-cli",
+                "docs-limits",
+                "docs-errors",
+                "docs-products",
+                "docs-reading",
+                "docs-profiles",
+                "docs-pairing",
+                "docs-agent-reads",
+                "docs-webmcp",
+                "docs-claims",
+                "docs-staking",
+                "docs-contracts",
+                "docs-changes",
+                "start",
+                "privacy",
+                "terms"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public page Markdown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "page",
+                    "path",
+                    "markdown"
+                  ],
+                  "properties": {
+                    "page": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "markdown": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No public page has that name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/healthz": {
       "get": {
         "operationId": "getServiceHealth",
@@ -157,7 +435,7 @@
       "get": {
         "operationId": "listProducts",
         "summary": "List the Regents products",
-        "description": "Keyfleet, Autolaunch, Patchbay and Techtree, in the order the site lists them, with the summary and links their pages on Regents show. Takes no query parameters.",
+        "description": "Keyfleet, Autolaunch, Patchbay, Techtree and Cloak, in the order the site lists them, with the summary and links their pages on Regents show. Takes no query parameters.",
         "responses": {
           "200": {
             "description": "The product directory",
@@ -217,7 +495,8 @@
                 "patchbay",
                 "autolaunch",
                 "techtree",
-                "keyfleet"
+                "keyfleet",
+                "cloak"
               ]
             }
           }
@@ -286,8 +565,8 @@
     "/api/v1/site-tools": {
       "get": {
         "operationId": "getEverySiteTools",
-        "summary": "Read every Regent site's browser tools at once",
-        "description": "Every browser tool regents.sh, patchbay.help, autolaunch.sh, techtree.sh and keyfleet.ai offers agents, as each site published them within the last day, and the steps to connect an agent through siwa-server. A site that could not be read right now is named under unreachable. The tool text is each site's own words. Anyone may read them; no sign-in.",
+        "summary": "Read the tool catalogs across Regents",
+        "description": "Read the tool names, titles and descriptions from the Regents, Patchbay, Autolaunch, Techtree and Keyfleet manifests bundled with this regents.sh build. The response also gives the SIWA connection steps. If a manifest is unavailable, its product is named under unreachable. Public read.",
         "responses": {
           "200": {
             "description": "Every site's tools and how to connect an agent",
@@ -316,8 +595,8 @@
     "/api/v1/site-tools/{site}": {
       "get": {
         "operationId": "getSiteTools",
-        "summary": "Read a Regent site's browser tools, or how to connect an agent",
-        "description": "Every browser tool regents.sh, patchbay.help, autolaunch.sh, techtree.sh or keyfleet.ai offers agents, as the site published them within the last day; the tool text is the site's own words. For siwa, the steps to connect an agent through siwa-server. Anyone may read them; no sign-in.",
+        "summary": "Read a Regents product tool catalog or SIWA setup",
+        "description": "Read the selected product manifest bundled with this regents.sh build. Use siwa for the SIWA connection steps. Public read.",
         "parameters": [
           {
             "name": "site",
@@ -3409,7 +3688,8 @@
               "patchbay",
               "autolaunch",
               "techtree",
-              "keyfleet"
+              "keyfleet",
+              "cloak"
             ]
           },
           "name": {
@@ -3480,7 +3760,8 @@
               "patchbay",
               "autolaunch",
               "techtree",
-              "keyfleet"
+              "keyfleet",
+              "cloak"
             ]
           },
           "name": {
@@ -4477,7 +4758,7 @@
             "properties": {
               "site": {
                 "type": "string",
-                "description": "The site's address, such as patchbay.help."
+                "description": "The product's address on regents.sh, such as regents.sh/patchbay."
               },
               "tools": {
                 "type": "array",
@@ -4603,7 +4884,7 @@
         "properties": {
           "sites": {
             "type": "array",
-            "description": "Each site that could be read, in the order regents.sh, patchbay.help, autolaunch.sh, techtree.sh, keyfleet.ai.",
+            "description": "Product catalogs, in the order Regents, Patchbay, Autolaunch, Techtree and Keyfleet.",
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -4614,7 +4895,7 @@
               "properties": {
                 "site": {
                   "type": "string",
-                  "description": "The site's address, such as patchbay.help."
+                  "description": "The product's address on regents.sh, such as regents.sh/patchbay."
                 },
                 "tools": {
                   "type": "array",
@@ -4644,7 +4925,7 @@
           },
           "unreachable": {
             "type": "array",
-            "description": "The sites whose tools could not be read right now, such as patchbay.help.",
+            "description": "Addresses of products whose bundled manifest could not be read, such as regents.sh/patchbay.",
             "items": {
               "type": "string"
             }
@@ -5313,6 +5594,12 @@
         "schema": {
           "type": "integer",
           "minimum": 1
+        }
+      },
+      "Deprecation": {
+        "description": "RFC 9745 deprecation signal indicating when an endpoint became or becomes deprecated (Unix timestamp in @-form, or true).",
+        "schema": {
+          "type": "string"
         }
       },
       "Sunset": {

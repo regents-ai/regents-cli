@@ -4,7 +4,8 @@
   "platform": "autolaunch",
   "base_url": "https://regents.sh",
   "notes": [
-    "No wallet, launch, treasury, spending or profile mutation commands. Private inputs are JSON stdin."
+    "All Autolaunch step-prepare commands return unsigned transaction steps for the owner's wallet; the site and CLI never sign or broadcast wallet transactions.",
+    "Private draft and pairing inputs are JSON stdin."
   ],
   "commands": [
     {
@@ -339,7 +340,8 @@
       "method": "GET",
       "path": "/api/agents/v1/whoami",
       "authority": "signed_agent",
-      "effect": "read"
+      "effect": "read",
+      "webmcp": "agent_whoami"
     },
     {
       "command": "agents status",
@@ -348,7 +350,8 @@
       "method": "GET",
       "path": "/api/agents/v1/me",
       "authority": "paired_agent",
-      "effect": "write"
+      "effect": "write",
+      "webmcp": "agent_status"
     },
     {
       "command": "agents pair",
@@ -386,7 +389,8 @@
       "method": "GET",
       "path": "/api/agent/v1/autolaunch/drafts/revstake",
       "authority": "paired_agent",
-      "effect": "read"
+      "effect": "read",
+      "webmcp": "autolaunch_revstake_draft"
     },
     {
       "command": "drafts revstake save",
@@ -469,7 +473,8 @@
           "required": false,
           "description": "The picture as {\"content_type\": \"image/png\", \"data\": base64}; read from JSON stdin."
         }
-      ]
+      ],
+      "webmcp": "autolaunch_revstake_draft_save"
     },
     {
       "command": "drafts memestock show",
@@ -478,7 +483,8 @@
       "method": "GET",
       "path": "/api/agent/v1/autolaunch/drafts/memestock",
       "authority": "paired_agent",
-      "effect": "read"
+      "effect": "read",
+      "webmcp": "autolaunch_memestock_draft"
     },
     {
       "command": "drafts memestock save",
@@ -561,7 +567,8 @@
           "required": false,
           "description": "The picture as {\"content_type\": \"image/png\", \"data\": base64}; read from JSON stdin."
         }
-      ]
+      ],
+      "webmcp": "autolaunch_memestock_draft_save"
     },
     {
       "command": "positions",
@@ -576,7 +583,8 @@
           "kind": "human",
           "say": "Give your person the bid_page of any bid that needs them: it shows what is theirs, what may happen next with its one button, and each transaction."
         }
-      ]
+      ],
+      "webmcp": "autolaunch_my_positions"
     },
     {
       "command": "account points",
@@ -585,7 +593,8 @@
       "method": "GET",
       "path": "/api/v1/account/points",
       "authority": "paired_agent",
-      "effect": "read"
+      "effect": "read",
+      "webmcp": "account_points"
     },
     {
       "command": "covered-calls book <symbol>",
@@ -1061,6 +1070,391 @@
         {
           "kind": "human",
           "say": "Review the signer, figures and blocked status. If blocked is null, the person's wallet can review and sign steps in order."
+        }
+      ]
+    },
+    {
+      "command": "bids prepare",
+      "description": "Prepare unsigned wallet steps for one bid on a Base auction for one of the paired owner's own wallets.",
+      "operation_id": "autolaunch_bid_prepare",
+      "webmcp": "autolaunch_bid_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/bids/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "flags": [
+        {
+          "name": "auction-id",
+          "type": "uuid",
+          "in": "body",
+          "field": "auction_id",
+          "required": true,
+          "description": "Base auction UUID from auctions list."
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "in": "body",
+          "field": "amount",
+          "required": true,
+          "description": "Decimal total to bid in the currency paid."
+        },
+        {
+          "name": "max-price",
+          "type": "string",
+          "in": "body",
+          "field": "max_price",
+          "required": true,
+          "description": "Decimal max price per token in the auction's currency."
+        },
+        {
+          "name": "pay-with",
+          "type": "string",
+          "in": "body",
+          "field": "pay_with",
+          "enum": [
+            "USDC"
+          ],
+          "description": "USDC to pay in USDC on a Memestock auction that takes it."
+        },
+        {
+          "name": "slippage-percent",
+          "type": "string",
+          "in": "body",
+          "field": "slippage_percent",
+          "description": "Max stock slippage percent for USDC bids (0 to 99.99; default 5)."
+        },
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "bids settle <bid>",
+      "description": "Prepare unsigned wallet steps to settle (record, exit, or claim) one of the paired owner's bids on a Base auction.",
+      "operation_id": "autolaunch_bid_settlement_prepare",
+      "webmcp": "autolaunch_bid_settlement_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/bids/{bid}/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "bid",
+          "type": "string",
+          "in": "path",
+          "field": "bid",
+          "description": "The Base bid id from positions."
+        }
+      ],
+      "flags": [
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "robinhood bids prepare",
+      "description": "Prepare unsigned wallet steps for one USDG bid on a Robinhood Chain auction.",
+      "operation_id": "autolaunch_robinhood_bid_prepare",
+      "webmcp": "autolaunch_robinhood_bid_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/robinhood/bids/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "flags": [
+        {
+          "name": "auction-id",
+          "type": "uuid",
+          "in": "body",
+          "field": "auction_id",
+          "required": true,
+          "description": "Robinhood Chain auction UUID from auctions list."
+        },
+        {
+          "name": "usdg-amount",
+          "type": "string",
+          "in": "body",
+          "field": "usdg_amount",
+          "required": true,
+          "description": "Decimal USDG amount to bid (at most 6 decimals)."
+        },
+        {
+          "name": "max-price",
+          "type": "string",
+          "in": "body",
+          "field": "max_price",
+          "required": true,
+          "description": "Decimal max price per token in the auction's stock."
+        },
+        {
+          "name": "slippage-percent",
+          "type": "string",
+          "in": "body",
+          "field": "slippage_percent",
+          "description": "Max stock slippage percent (0 to 99.99; default 5)."
+        },
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "robinhood bids settle <bid>",
+      "description": "Prepare unsigned wallet steps to settle one of the paired owner's bids on a Robinhood Chain auction.",
+      "operation_id": "autolaunch_robinhood_bid_settlement_prepare",
+      "webmcp": "autolaunch_robinhood_bid_settlement_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/robinhood/bids/{bid}/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "bid",
+          "type": "string",
+          "in": "path",
+          "field": "bid",
+          "description": "The Robinhood bid id (0x...:N) from positions."
+        }
+      ],
+      "flags": [
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "launches prepare <draft>",
+      "description": "Prepare the unsigned launch step for a saved Revstake or Memestock draft.",
+      "operation_id": "autolaunch_launch_prepare",
+      "webmcp": "autolaunch_launch_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/launches/{draft}/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "draft",
+          "type": "uuid",
+          "in": "path",
+          "field": "draft",
+          "description": "Draft UUID from drafts revstake show or drafts memestock show."
+        }
+      ],
+      "flags": [
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "auctions finish <auction-id>",
+      "description": "Prepare the unsigned wallet step to finish an ended Base or Robinhood auction.",
+      "operation_id": "autolaunch_finish_prepare",
+      "webmcp": "autolaunch_finish_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/auctions/{auction_id}/finish/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "auction-id",
+          "type": "uuid",
+          "in": "path",
+          "field": "auction_id",
+          "description": "Auction UUID from auctions list."
+        }
+      ],
+      "flags": [
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "tokens stake <token-id>",
+      "description": "Prepare unsigned wallet steps to stake, unstake, or claim rewards on a listed token.",
+      "operation_id": "autolaunch_stake_prepare",
+      "webmcp": "autolaunch_stake_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/tokens/{token_id}/stake/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "token-id",
+          "type": "uuid",
+          "in": "path",
+          "field": "token_id",
+          "description": "Token UUID from tokens list."
+        }
+      ],
+      "flags": [
+        {
+          "name": "kind",
+          "type": "string",
+          "in": "body",
+          "field": "kind",
+          "required": true,
+          "enum": [
+            "stake",
+            "unstake",
+            "claim"
+          ],
+          "description": "Staking action: stake, unstake, or claim."
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "in": "body",
+          "field": "amount",
+          "description": "For unstake only: decimal amount to unstake."
+        },
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "tokens swap <token-id>",
+      "description": "Prepare unsigned wallet steps for one exact-input buy or sell of a listed Base token.",
+      "operation_id": "autolaunch_swap_prepare",
+      "webmcp": "autolaunch_swap_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/tokens/{token_id}/swap/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "token-id",
+          "type": "uuid",
+          "in": "path",
+          "field": "token_id",
+          "description": "Token UUID from tokens list."
+        }
+      ],
+      "flags": [
+        {
+          "name": "direction",
+          "type": "string",
+          "in": "body",
+          "field": "direction",
+          "required": true,
+          "enum": [
+            "buy",
+            "sell"
+          ],
+          "description": "buy or sell."
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "in": "body",
+          "field": "amount",
+          "required": true,
+          "description": "Decimal amount spent by the wallet."
+        },
+        {
+          "name": "protection",
+          "type": "string",
+          "in": "body",
+          "field": "protection",
+          "description": "Price protection percent from 1 to 10 (default 6)."
+        },
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
+        }
+      ]
+    },
+    {
+      "command": "tokens payment <token-id>",
+      "description": "Prepare unsigned wallet steps to pay or sweep revenue into a listed Revstake token's revenue split on Base.",
+      "operation_id": "autolaunch_payment_prepare",
+      "webmcp": "autolaunch_payment_prepare",
+      "method": "POST",
+      "path": "/api/agent/v1/autolaunch/tokens/{token_id}/payment/steps",
+      "authority": "paired_agent",
+      "effect": "prepare",
+      "arguments": [
+        {
+          "name": "token-id",
+          "type": "uuid",
+          "in": "path",
+          "field": "token_id",
+          "description": "Token UUID from tokens list."
+        }
+      ],
+      "flags": [
+        {
+          "name": "kind",
+          "type": "string",
+          "in": "body",
+          "field": "kind",
+          "required": true,
+          "enum": [
+            "pay",
+            "sweep"
+          ],
+          "description": "pay or sweep."
+        },
+        {
+          "name": "asset",
+          "type": "string",
+          "in": "body",
+          "field": "asset",
+          "required": true,
+          "enum": [
+            "usdc",
+            "regent",
+            "token"
+          ],
+          "description": "Asset to pay or sweep: usdc, regent, or token."
+        },
+        {
+          "name": "amount",
+          "type": "string",
+          "in": "body",
+          "field": "amount",
+          "description": "For pay only: decimal amount to pay."
+        },
+        {
+          "name": "signer",
+          "type": "address",
+          "in": "body",
+          "field": "signer",
+          "description": "One of the person's wallets. Omit to use their sign-in wallet."
         }
       ]
     }

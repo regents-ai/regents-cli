@@ -1,16 +1,17 @@
+# Isolated Exposure to After-hours Stocks, added to api-contract.openapiv3.yaml only while the site offers it
+# (AUTOLAUNCH_EXPOSURE=true; AutolaunchWeb.PublicDocuments.openapi/0). Off, /openapi.json
+# is api-contract.openapiv3.yaml exactly. Every path and component here is new; none replaces one.
 paths:
   /api/v1/autolaunch/after-hour-stocks:
     get:
       operationId: listExposureSeries
       summary: List Isolated Exposure to After-hours Stocks series
-      description: Every Isolated Exposure to After-hours Stocks series this site
-        offers on Base, newest first, as each stands at the latest block. A series
-        splits one stock token for a fixed term into an After-hours token (the stock's
-        moves from each close to the next open) and a Market-hours token (its moves
-        from each open to the close). Stock and token amounts are raw token units,
-        prices and ledger values WAD dollars per stock token, pool quotes micro-USDC,
-        times Unix seconds. Needs no account; the page tool autolaunch_after_hour_stocks_list
-        calls it.
+      description: Every Isolated Exposure to After-hours Stocks series this site offers on Base, newest first, as each stands at the
+        latest block. A series splits one stock token for a fixed term into an After-hours token (the
+        stock's moves from each close to the next open) and a Market-hours token (its moves from each
+        open to the close). Stock and token amounts are raw token units, prices and ledger values WAD
+        dollars per stock token, pool quotes micro-USDC, times Unix seconds. Needs no account; the page
+        tool autolaunch_after_hour_stocks_list calls it.
       security: []
       responses:
         '200':
@@ -26,10 +27,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '503':
-          description: The chain could not be read (chain_unavailable, invalid_chain_response,
-            invalid_block_header, wrong_chain), or Isolated Exposure to After-hours
-            Stocks is not available on this site right now (base_deployment_mismatch,
-            missing_deployment_id)
+          description: The chain could not be read (chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain), or Isolated Exposure to After-hours Stocks is not available on this site right now (base_deployment_mismatch, missing_deployment_id)
           content:
             application/json:
               schema:
@@ -42,9 +40,8 @@ paths:
     get:
       operationId: getExposureSeries
       summary: Read an Isolated Exposure to After-hours Stocks series
-      description: One Isolated Exposure to After-hours Stocks series at the latest
-        block, in the shape of each entry of listExposureSeries. Needs no account;
-        the page tool autolaunch_after_hour_stocks_series calls it.
+      description: One Isolated Exposure to After-hours Stocks series at the latest block, in the shape of each entry of
+        listExposureSeries. Needs no account; the page tool autolaunch_after_hour_stocks_series calls it.
       security: []
       parameters:
       - $ref: '#/components/parameters/ExposureSeriesAddress'
@@ -68,10 +65,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '503':
-          description: The chain could not be read (chain_unavailable, invalid_chain_response,
-            invalid_block_header, wrong_chain), or Isolated Exposure to After-hours
-            Stocks is not available on this site right now (base_deployment_mismatch,
-            missing_deployment_id)
+          description: The chain could not be read (chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain), or Isolated Exposure to After-hours Stocks is not available on this site right now (base_deployment_mismatch, missing_deployment_id)
           content:
             application/json:
               schema:
@@ -84,9 +78,9 @@ paths:
     get:
       operationId: getMyExposure
       summary: Read your Isolated Exposure to After-hours Stocks holding
-      description: What the signed-in wallet holds of one series and what it can return
-        now, read at the latest block. Only the wallet the person signed in with is
-        read. Needs the site's sign-in in the same browser.
+      description: What the signed-in wallet holds of one series and what it can return now, read at the
+        latest block. Only the wallet the person signed in with is read. Needs the site's sign-in in the
+        same browser.
       security:
       - SiteSession: []
       parameters:
@@ -117,10 +111,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '503':
-          description: The chain could not be read (chain_unavailable, invalid_chain_response,
-            invalid_block_header, wrong_chain), or Isolated Exposure to After-hours
-            Stocks is not available on this site right now (base_deployment_mismatch,
-            missing_deployment_id)
+          description: The chain could not be read (chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain), or Isolated Exposure to After-hours Stocks is not available on this site right now (base_deployment_mismatch, missing_deployment_id)
           content:
             application/json:
               schema:
@@ -133,8 +124,8 @@ paths:
     get:
       operationId: autolaunch_my_after_hour_stocks
       summary: Read your person's Isolated Exposure to After-hours Stocks holding
-      description: What the paired person's signed-in wallet holds of one series and
-        what it can return now, read at the latest block. Changes nothing.
+      description: What the paired person's signed-in wallet holds of one series and what it can return
+        now, read at the latest block. Changes nothing.
       security:
       - SiwaProof: []
       parameters:
@@ -167,10 +158,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '503':
-          description: The chain could not be read (chain_unavailable, invalid_chain_response,
-            invalid_block_header, wrong_chain), or Isolated Exposure to After-hours
-            Stocks is not available on this site right now (base_deployment_mismatch,
-            missing_deployment_id)
+          description: The chain could not be read (chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain), or Isolated Exposure to After-hours Stocks is not available on this site right now (base_deployment_mismatch, missing_deployment_id)
           content:
             application/json:
               schema:
@@ -179,12 +167,11 @@ paths:
     post:
       operationId: autolaunch_after_hour_stocks_prepare
       summary: Prepare an Isolated Exposure to After-hours Stocks step
-      description: The wallet steps for one Isolated Exposure to After-hours Stocks
-        action, built from the chain at the latest block, for one of the person's
-        own wallets (`signer`, or the wallet they signed in with). The site only prepares;
-        the wallet's own key signs and sends each step. An action the chain's current
-        state makes certain to fail answers 200 with `blocked`, and its steps. Changes
-        nothing.
+      description: The wallet steps for one Isolated Exposure to After-hours Stocks action, built from the chain at the latest block,
+        for one of the person's own wallets (`signer`, or the wallet they signed in with). The site only
+        prepares; the wallet's own key signs and sends each step. An action the chain's current state
+        makes certain to fail answers 200 with `blocked`, and its steps; a buy or sell with no pool
+        (`no_liquidity`) or whose quote less 2% comes to nothing (`too_small`) has none. Changes nothing.
       security:
       - SiwaProof: []
       parameters:
@@ -197,8 +184,8 @@ paths:
               $ref: '#/components/schemas/ExposureStepRequest'
       responses:
         '200':
-          description: The steps, whether the allowance already covers them, and any
-            reason they are certain to fail
+          description: The steps, whether the allowance already covers them, and any reason they are certain
+            to fail
           content:
             application/json:
               schema:
@@ -206,8 +193,8 @@ paths:
         '401':
           description: Fresh request proof required
         '403':
-          description: The agent is paired with nobody (agent_not_paired), or the
-            signer is not one of the person's own wallets (wrong_signer)
+          description: The agent is paired with nobody (agent_not_paired), or the signer is not one of
+            the person's own wallets (wrong_signer)
           content:
             application/json:
               schema:
@@ -225,17 +212,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '422':
-          description: An unknown field, kind or type, or amounts that come to nothing
-            (invalid_request, invalid_amount)
+          description: An unknown field, kind or type, or amounts that come to nothing (invalid_request,
+            invalid_amount)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExposureError'
         '503':
-          description: The chain could not be read (chain_unavailable, invalid_chain_response,
-            invalid_block_header, wrong_chain), Isolated Exposure to After-hours Stocks
-            is not available on this site right now (base_deployment_mismatch, missing_deployment_id),
-            or the site is not open yet (prelaunch_read_only)
+          description: The chain could not be read (chain_unavailable, invalid_chain_response, invalid_block_header, wrong_chain), Isolated Exposure to After-hours Stocks is not available on this site right now (base_deployment_mismatch, missing_deployment_id), or the site is not open yet (prelaunch_read_only)
 components:
   parameters:
     ExposureSeriesAddress:
@@ -274,15 +258,13 @@ components:
         properties:
           ledger:
             type: integer
-            description: What one token is worth now in its share of the stock, WAD
-              dollars per stock token.
+            description: What one token is worth now in its share of the stock, WAD dollars per stock token.
           supply:
             type: integer
             description: Raw units in existence.
           pool:
-            description: Null without an Aerodrome pool against USDC; otherwise the
-              pool and what one whole token sells for there now (null when it holds
-              nothing to quote).
+            description: Null without an Aerodrome pool against USDC; otherwise the pool and what one whole
+              token sells for there now (null when it holds nothing to quote).
             oneOf:
             - type: 'null'
             - type: object
@@ -369,8 +351,7 @@ components:
           - null
         price:
           type: integer
-          description: The last applied price, WAD dollars per stock token; 0 before
-            the first.
+          description: The last applied price, WAD dollars per stock token; 0 before the first.
         deposit_cap:
           type: integer
         deposited:
@@ -378,8 +359,7 @@ components:
           description: Raw stock the series owes its tokens.
         held:
           type: integer
-          description: Raw stock the series holds; below deposited only after the
-            issuer took some.
+          description: Raw stock the series holds; below deposited only after the issuer took some.
         max_report_delay:
           type: integer
           description: Seconds after its time by which a price must be recorded.
@@ -519,8 +499,8 @@ components:
               description: Raw stock the wallet lets the series take.
             returnable:
               type: object
-              description: What redeem takes now (whole pairs before the end, every
-                token after it) and the raw stock it pays.
+              description: What redeem takes now (whole pairs before the end, every token after it) and
+                the raw stock it pays.
               required:
               - after_hours
               - market_hours
@@ -552,27 +532,22 @@ components:
           enum:
           - overnight
           - session
-          description: For buy and sell, overnight selects after_hours from the series
-            read and session selects market_hours.
+          description: For buy and sell, overnight selects after_hours from the series read and session selects market_hours.
         signer:
           type: string
-          description: One of the person's own wallets; omit it for the wallet they
-            signed in with.
+          description: One of the person's own wallets; omit it for the wallet they signed in with.
         amount:
           type: integer
           minimum: 1
-          description: For buy, USDC micro-units to spend; for sell, raw token units;
-            for mint, raw stock units. Must fit uint256.
+          description: For buy, USDC micro-units to spend; for sell, raw token units; for mint, raw stock units. Must fit uint256.
         overnight:
           type: integer
           minimum: 0
-          description: For redeem, raw After-hours units; equal to session before
-            the series ends. Must fit uint256.
+          description: For redeem, raw After-hours units; equal to session before the series ends. Must fit uint256.
         session:
           type: integer
           minimum: 0
-          description: For redeem, raw Market-hours units; equal to overnight before
-            the series ends. Must fit uint256.
+          description: For redeem, raw Market-hours units; equal to overnight before the series ends. Must fit uint256.
     ExposureStepsEnvelope:
       type: object
       required:

@@ -1396,7 +1396,8 @@
           "field": "campaign_id",
           "description": "The campaign_id hash from offers list."
         }
-      ]
+      ],
+      "webmcp": "read_offer_campaign"
     },
     {
       "command": "services list",
@@ -1518,7 +1519,8 @@
           "field": "category",
           "description": "Filter by service category."
         }
-      ]
+      ],
+      "webmcp": "patchbay_list_endpoints"
     },
     {
       "command": "validate <url>",
@@ -1627,10 +1629,223 @@
       ]
     },
     {
+      "command": "security probe-crypto <url>",
+      "description": "Probe a public HTTPS endpoint for strict hybrid post-quantum TLS key exchange (X25519MLKEM768 / P-curve ML-KEM), PQ ClientHello middlebox intolerance, and leaf certificate signature posture, returning a deterministic verification digest.",
+      "operation_id": "probeEndpointCrypto",
+      "webmcp": "patchbay_probe_crypto",
+      "method": "POST",
+      "path": "/api/v1/patchbay/security/probe-crypto",
+      "authority": "public",
+      "effect": "read",
+      "arguments": [
+        {
+          "name": "url",
+          "type": "string",
+          "in": "body",
+          "field": "url",
+          "description": "Public https:// URL to probe for hybrid PQ TLS and certificate signature posture."
+        }
+      ]
+    },
+    {
+      "command": "security check-crypto",
+      "description": "Audit a dependency manifest or lockfile (mix.lock, Cargo.toml, Cargo.lock, package-lock.json, uv.lock, go.mod, composer.lock, or pkg@version list) for ECC/RSA exposure, separate app-owned upgrades from external chain/hardware rails, and emit a CycloneDX 1.6 CBOM.",
+      "operation_id": "checkCryptoStack",
+      "webmcp": "patchbay_check_crypto",
+      "method": "POST",
+      "path": "/api/v1/patchbay/security/check-crypto",
+      "authority": "public",
+      "effect": "read",
+      "flags": [
+        {
+          "name": "manifest",
+          "type": "string",
+          "in": "body",
+          "field": "manifest",
+          "description": "Inline lockfile/manifest contents or comma/newline list of packages (e.g. openssl@3.0.15, rustls@0.23.46, ring@0.17.14)."
+        },
+        {
+          "name": "file",
+          "type": "text_file",
+          "in": "body",
+          "field": "manifest",
+          "maximum": 65536,
+          "description": "Path to a local lockfile/manifest or '-' to read stdin (max 64 KB)."
+        },
+        {
+          "name": "include-cbom",
+          "type": "boolean",
+          "in": "body",
+          "field": "include_cbom",
+          "description": "Include the CycloneDX 1.6 CBOM JSON document in the response (default true)."
+        }
+      ],
+      "required_one_of": [
+        "manifest",
+        "file"
+      ]
+    },
+    {
+      "command": "security diff-crypto",
+      "description": "Compare before and after dependency manifests (or lockfiles) to verify ECC/PQC migration progress and emit a deterministic receipt_digest.",
+      "operation_id": "diffCryptoMigration",
+      "webmcp": "patchbay_diff_crypto",
+      "method": "POST",
+      "path": "/api/v1/patchbay/security/diff-crypto",
+      "authority": "public",
+      "effect": "read",
+      "flags": [
+        {
+          "name": "before-manifest",
+          "type": "string",
+          "in": "body",
+          "field": "before_manifest",
+          "description": "Before-migration manifest or package list text."
+        },
+        {
+          "name": "after-manifest",
+          "type": "string",
+          "in": "body",
+          "field": "after_manifest",
+          "description": "After-migration manifest or package list text."
+        },
+        {
+          "name": "before-file",
+          "type": "text_file",
+          "in": "body",
+          "field": "before_manifest",
+          "maximum": 65536,
+          "description": "Path to before-migration lockfile/manifest (max 64 KB)."
+        },
+        {
+          "name": "after-file",
+          "type": "text_file",
+          "in": "body",
+          "field": "after_manifest",
+          "maximum": 65536,
+          "description": "Path to after-migration lockfile/manifest (max 64 KB)."
+        }
+      ],
+      "required_one_of": [
+        "before-manifest",
+        "before-file"
+      ]
+    },
+    {
+      "command": "security check-authority",
+      "description": "Inventory an on-chain Safe multisig, Autolaunch treasury, Keyfleet fleet treasury, or EOA admin for exposed-key quorum blast radius and immutable L1 secp256k1 boundaries.",
+      "operation_id": "checkAuthorityInventory",
+      "webmcp": "patchbay_check_authority",
+      "method": "POST",
+      "path": "/api/v1/patchbay/security/check-authority",
+      "authority": "public",
+      "effect": "read",
+      "flags": [
+        {
+          "name": "preset",
+          "type": "string",
+          "in": "body",
+          "field": "preset",
+          "description": "Optional built-in preset: autolaunch_safe, keyfleet_treasury, or single_eoa_admin."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "in": "body",
+          "field": "label",
+          "description": "Human-readable name for the treasury or governance contract."
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "in": "body",
+          "field": "address",
+          "description": "Optional 0x contract or EOA address."
+        },
+        {
+          "name": "chain-id",
+          "type": "integer",
+          "in": "body",
+          "field": "chain_id",
+          "description": "EVM chain ID (default 8453 for Base)."
+        },
+        {
+          "name": "classification",
+          "type": "string",
+          "in": "body",
+          "field": "classification",
+          "description": "Treasury type: supported_safe, safe_1_of_1, eoa, delegated_eoa, unknown_contract, split, or unsupported."
+        },
+        {
+          "name": "threshold",
+          "type": "integer",
+          "in": "body",
+          "field": "threshold",
+          "description": "Signing threshold required for execution."
+        },
+        {
+          "name": "owners",
+          "type": "string",
+          "in": "body",
+          "field": "owner_addresses",
+          "description": "Comma or newline separated 0x owner addresses."
+        },
+        {
+          "name": "exposed-owners",
+          "type": "string",
+          "in": "body",
+          "field": "exposed_owners",
+          "description": "Comma or newline separated 0x owner addresses whose public keys have been exposed on-chain or kept hot."
+        },
+        {
+          "name": "modules",
+          "type": "string",
+          "in": "body",
+          "field": "modules",
+          "description": "Optional comma-separated Safe module addresses."
+        },
+        {
+          "name": "guard",
+          "type": "string",
+          "in": "body",
+          "field": "guard",
+          "description": "Optional Safe transaction guard 0x address."
+        },
+        {
+          "name": "fallback-handler",
+          "type": "string",
+          "in": "body",
+          "field": "fallback_handler",
+          "description": "Optional Safe fallback handler 0x address."
+        },
+        {
+          "name": "upgrade-admin",
+          "type": "string",
+          "in": "body",
+          "field": "upgrade_admin",
+          "description": "Optional separate proxy/upgrade admin 0x address."
+        },
+        {
+          "name": "recovery-mode",
+          "type": "string",
+          "in": "body",
+          "field": "recovery_mode",
+          "description": "Documented out-of-band recovery path: human_multisig, timelock_guardian, or none."
+        },
+        {
+          "name": "app-auth-coupled",
+          "type": "boolean",
+          "in": "body",
+          "field": "app_auth_coupled",
+          "description": "Whether off-chain agent auth (SIWA/API) shares the on-chain treasury key."
+        }
+      ]
+    },
+    {
       "command": "playbooks list",
       "description": "List Patchbay agent support playbooks for debugging x402, MPP (Tempo sessions), cve.now KEV triage, SIWA auth, and WebMCP.",
       "operation_id": "listPlaybooks",
-      "webmcp": "patchbay_get_playbook",
+      "webmcp": "patchbay_list_playbooks",
       "method": "GET",
       "path": "/api/v1/patchbay/playbooks",
       "authority": "public",
@@ -1661,7 +1876,60 @@
           "field": "slug",
           "description": "Playbook slug from playbooks list (e.g. debug-x402-http-402)."
         }
+      ],
+      "webmcp": "patchbay_get_playbook"
+    },
+    {
+      "command": "hello",
+      "description": "Send a SIWA-verified public hello to Patchbay's live stream.",
+      "operation_id": "sayVerifiedHello",
+      "method": "POST",
+      "path": "/api/agent/v1/patchbay/hello",
+      "webmcp": "say_hello",
+      "authority": "signed_agent",
+      "effect": "write",
+      "arguments": [],
+      "flags": [
+        {
+          "name": "name",
+          "type": "string",
+          "in": "body",
+          "field": "name",
+          "required": true,
+          "description": "Your self-chosen public display name."
+        },
+        {
+          "name": "language",
+          "type": "string",
+          "in": "body",
+          "field": "language",
+          "description": "Optional BCP-47 language tag (e.g. en, fr, ja)."
+        }
       ]
+    },
+    {
+      "command": "help",
+      "description": "Read Patchbay's structured help guide for agents, endpoints, sandboxes, and reporting rules.",
+      "operation_id": "getPatchbayHelp",
+      "method": "GET",
+      "path": "/api/v1/patchbay/forum/help",
+      "webmcp": "get_patchbay_help",
+      "authority": "public",
+      "effect": "read",
+      "arguments": [],
+      "flags": []
+    },
+    {
+      "command": "capabilities",
+      "description": "Read Patchbay's canonical capabilities and WebMCP/MCP tool manifest.",
+      "operation_id": "getCapabilities",
+      "method": "GET",
+      "path": "/api/v1/patchbay/capabilities",
+      "webmcp": "capabilities",
+      "authority": "public",
+      "effect": "read",
+      "arguments": [],
+      "flags": []
     }
   ]
 }
