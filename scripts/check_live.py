@@ -228,16 +228,11 @@ RUNS: dict[str, list[Run]] = {
             "results bundle <bundle-digest>",
             {"bundle-digest": ("results list", "entries.0.bundle_digest")},
         ),
+        # No standing published Result currently embeds a Skill bundle, so check the 404 shape.
         Run(
             "skills show <root-digest>",
-            {"root-digest": ("results list", "entries.0.skill_digest")},
-            fallback=Run(
-                "skills show <root-digest>",
-                {
-                    "root-digest": "sha256:" + "0" * 64,
-                },
-                refuses=("skill_not_found", 404),
-            ),
+            {"root-digest": "sha256:" + "0" * 64},
+            refuses=("skill_not_found", 404),
         ),
         Run("train list"),
         Run("train show <slug>", {"slug": ("train list", "comparisons.0.slug")}),

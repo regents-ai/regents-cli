@@ -23,7 +23,7 @@
   },
   "autolaunch": {
     "repository": "regents-ai/regents",
-    "commit": "9d16e231df3dad04ccd69f8628feec88448cfff8",
+    "commit": "88ec8786cffdda24862379d4eca755588e14c53e",
     "files": {
       "cli/autolaunch/commands.json": {
         "copy": "src/regents_cli/platforms/autolaunch/commands.json",
@@ -121,7 +121,7 @@
   },
   "keyfleet": {
     "repository": "regents-ai/regents",
-    "commit": "9d16e231df3dad04ccd69f8628feec88448cfff8",
+    "commit": "88ec8786cffdda24862379d4eca755588e14c53e",
     "files": {
       "cli/keyfleet/commands.json": {
         "copy": "src/regents_cli/platforms/keyfleet/commands.json",
@@ -143,7 +143,7 @@
   },
   "patchbay": {
     "repository": "regents-ai/regents",
-    "commit": "9d16e231df3dad04ccd69f8628feec88448cfff8",
+    "commit": "88ec8786cffdda24862379d4eca755588e14c53e",
     "files": {
       "cli/patchbay/commands.json": {
         "copy": "src/regents_cli/platforms/patchbay/commands.json",
@@ -151,7 +151,7 @@
       },
       "platform/priv/patchbay/public/openapi.json": {
         "copy": "src/regents_cli/platforms/patchbay/openapi.json",
-        "sha256": "95630a8bc33a9f33c86315d814924478112140276044e0fee655845155bb0791"
+        "sha256": "d05d1b79443f90511863251cd8df7aa8cbb04d5f720384c3f691045db3636d3e"
       },
       "platform/priv/patchbay/tool_manifest.json": {
         "copy": "src/regents_cli/platforms/patchbay/tool_manifest.json",
@@ -161,7 +161,7 @@
   },
   "protocol": {
     "repository": "regents-ai/regents",
-    "commit": "9d16e231df3dad04ccd69f8628feec88448cfff8",
+    "commit": "88ec8786cffdda24862379d4eca755588e14c53e",
     "files": {
       "cli/regents/commands.json": {
         "copy": "src/regents_cli/platforms/protocol/commands.json",
@@ -193,7 +193,7 @@
   },
   "techtree": {
     "repository": "regents-ai/regents",
-    "commit": "9d16e231df3dad04ccd69f8628feec88448cfff8",
+    "commit": "88ec8786cffdda24862379d4eca755588e14c53e",
     "files": {
       "cli/techtree/commands.json": {
         "copy": "src/regents_cli/platforms/techtree/commands.json",
